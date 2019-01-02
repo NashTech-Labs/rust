@@ -4,23 +4,25 @@ use crate::user_service_impl::models::user::User;
 use crate::user_service_impl::models::user_login::UserLogin;
 use crate::user_service_impl::models::p_user::PUser;
 use crate::user_service_impl::controller::error::CustomError;
-use crate::user_service_impl::env_setup::connection::CurrentSession;
 use crate::user_service_impl::env_setup::connection::{CurrentSession,connect};
 use crate::user_service_impl::eventsourcing::user_repository::insertion::insert_user;
+use std::cell::Cell;
 
 pub struct AppState {
-    pub session: CurrentSession,
+    pub session: Cell<CurrentSession>,
 }
 
+/*
 impl AppState {
     pub fn new_session(&self)-> AppState {
        AppState{session:connect()}
     }
 }
+*/
 
-pub fn create_user(user_reg: Json<UserRegistration>) -> Result<Json<User>, CustomError> {
+/*pub fn create_user(user_reg: Json<UserRegistration>) -> Result<Json<User>, CustomError> {
     insert_user(&session,user_reg.into_inner())
-}
+}*/
 
 /*
 pub fn get_user(user_id: Path<i32>) -> Result<Json<User>, CustomError> {

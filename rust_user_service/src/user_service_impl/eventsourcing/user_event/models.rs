@@ -1,7 +1,7 @@
 use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::models::p_user::PUser;
-use uuid::Uuid;
+use crate::user_service_impl::eventsourcing::user_repository::insertion::get_id_by_email;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Event)]
 #[event_type_version("1.0")]
@@ -15,7 +15,7 @@ impl From<UserCommand> for UserEvent {
         match source {
             UserCommand::CreateUser(UserRegistration) =>
                 UserEvent::UserCreated(PUser{
-                    id: get_id_by_email(&UserRegistration).to_string(),
+                    id: get_id_by_email(&UserRegistration).unwrap().to_string(),
                     name: UserRegistration.name,
                     email: UserRegistration.email,
                     password: UserRegistration.password
@@ -24,9 +24,3 @@ impl From<UserCommand> for UserEvent {
     }
 }
 
-/// this method is used to retrieve the id from email
-fn get_id_by_email(user_reg:&UserRegistration)-> Uuid {
-    let bytes= user_reg.email.to_lowercase().bytes();
-    let user_id = Uuid::from_bytes(bytes);
-    user_id
-}

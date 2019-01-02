@@ -1,6 +1,8 @@
 use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::models::p_user::PUser;
+use uuid::Uuid;
+use uuid::parser::ParseError;
 use crate::user_service_impl::eventsourcing::user_repository::insertion::get_id_by_email;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Event)]
@@ -23,4 +25,3 @@ impl From<UserCommand> for UserEvent {
             }
     }
 }
-

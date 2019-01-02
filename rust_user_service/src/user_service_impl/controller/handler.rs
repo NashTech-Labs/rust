@@ -7,22 +7,22 @@ use crate::user_service_impl::controller::error::CustomError;
 use crate::user_service_impl::env_setup::connection::{CurrentSession,connect};
 use crate::user_service_impl::eventsourcing::user_repository::insertion::insert_user;
 use std::cell::Cell;
+use actix_web::State;
+use crate::user_service_impl::env_setup::keyspace::create_keyspace;
+use crate::user_service_impl::env_setup::table::create_table;
 
 pub struct AppState {
-    pub session: Cell<CurrentSession>,
+    pub session: CurrentSession,
 }
 
-/*
-impl AppState {
-    pub fn new_session(&self)-> AppState {
-       AppState{session:connect()}
-    }
+pub fn intializer(data:State<AppState>)-> Result<&'static str> {
+    create_keyspace(&data.session);
+    create_table(&data.session);
+    Ok("successfully up")
 }
-*/
-
-/*pub fn create_user(user_reg: Json<UserRegistration>) -> Result<Json<User>, CustomError> {
-    insert_user(&session,user_reg.into_inner())
-}*/
+pub fn create_user(data:State<AppState>,user_reg: Json<UserRegistration>) -> Result<Json<User>, CustomError> {
+    insert_user(&data.session,user_reg.into_inner())
+}
 
 /*
 pub fn get_user(user_id: Path<i32>) -> Result<Json<User>, CustomError> {

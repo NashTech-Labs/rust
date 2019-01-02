@@ -7,12 +7,12 @@ use actix_web::{App,http,server};
 use listenfd::ListenFd;
 use std::thread;
 
-use user_service::user_service_impl::controller::handler::{AppState/*,create_user,user_login,get_user
+use user_service::user_service_impl::controller::handler::{AppState,create_user/*,user_login,get_user
                                                            ,get_all_users*/};
 use user_service::user_service_impl::constants::constant::SERVER_BIND_PORT;
-use user_service::user_service_impl::eventsourcing::user_repository::insertion::insert_user;
-use user_service::user_service_impl::env_setup::connection::connect;
 use std::cell::Cell;
+use user_service::user_service_impl::env_setup::connection::connect;
+use user_service::user_service_impl::controller::handler::intializer;
 
 fn main() {
     ::std::env::set_var("RUST_LOG", "actix_web=debug");
@@ -20,9 +20,11 @@ fn main() {
 
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
-        App::with_state(AppState {session:Cell::new(connect())})
+        App::with_state(AppState {session:connect()})
+            .resource("/set_up", |r| r.method(http::Method::GET)
+                .with(intializer))
             .resource("/create_user", |r| r.method(http::Method::POST)
-                .with(insert_user))
+                .with(create_user))
             /*.resource("/login", |r| r.method(http::Method::POST)
                 .with(user_login))
             .resource("/get_user/{user_id}", |r| r.method(http::Method::GET)

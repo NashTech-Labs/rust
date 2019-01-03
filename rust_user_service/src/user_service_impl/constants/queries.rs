@@ -22,3 +22,9 @@ pub const EVENT_TABLE_QUERY: &str = "CREATE TABLE IF NOT EXISTS user_ks.user_eve
 
 pub const STATE_TABLE_QUERY: &str = "CREATE TABLE IF NOT EXISTS user_ks.user_states \
                                      (user_id uuid PRIMARY KEY ,user_state text);";
+
+pub const USER_EVENT_STORE_QUERY: &str = "INSERT INTO user_ks.user_events (user_id,user_event) \
+        VALUES (?,?)";
+
+pub const USER_STATE_STORE_QUERY: &str = "INSERT INTO user_ks.user_states (user_id,user_state) \
+        VALUES (?,?)";

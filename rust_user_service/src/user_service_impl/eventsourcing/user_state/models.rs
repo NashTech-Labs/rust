@@ -1,10 +1,10 @@
-use eventsourcing::{eventstore::MemoryEventStore, prelude::*, Result};
 use crate::user_service_impl::models::p_user::PUser;
+use eventsourcing::{eventstore::MemoryEventStore, prelude::*, Result};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct UserState {
     pub user: PUser,
-    pub generation: u64
+    pub generation: u64,
 }
 
 impl AggregateState for UserState {

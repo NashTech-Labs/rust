@@ -1,37 +1,46 @@
+use actix_web::Json;
 use actix_web::Result;
 use cdrs::query::QueryExecutor;
-use crate::user_service_impl::models::user_registration::UserRegistration;
-use crate::user_service_impl::env_setup::connection::CurrentSession;
-use crate::user_service_impl::eventsourcing::user_repository::is_present::is_present;
-use uuid::Uuid;
 use uuid::parser::ParseError;
-use actix_web::Json;
-use crate::user_service_impl::models::user::User;
+use uuid::Uuid;
+
+use crate::user_service_impl::constants::queries::USER_EVENT_STORE_QUERY;
+use crate::user_service_impl::constants::queries::USER_STATE_STORE_QUERY;
 use crate::user_service_impl::controller::error::CustomError;
+use crate::user_service_impl::env_setup::connection::CurrentSession;
+use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
+use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
+use crate::user_service_impl::eventsourcing::user_repository::is_present::is_present;
+use crate::user_service_impl::eventsourcing::user_state::models::UserState;
+use crate::user_service_impl::models::p_user::PUser;
+use crate::user_service_impl::models::user::User;
+use crate::user_service_impl::models::user_registration::UserRegistration;
+use crate::user_service_impl::utilities::initial_state::initial_state;
 
-pub fn insert_user(session: &CurrentSession, new_user: UserRegistration)
-                   -> Result<Json<User>, CustomError> {
-    let new_user_id = get_id_by_email(&new_user).unwrap();
-    if is_present(&session, new_user_id)
-        {
-            let user_json: String = serde_json::to_string(&new_user).unwrap();
-            let insert_struct_cql = "INSERT INTO user_ks.user_events Json ?";
-            session.query_with_values(insert_struct_cql,
-                                      query_values!( user_json))
-                .expect("insert error");
-            Ok(Json(User {
-                id: new_user_id.to_string(),
-                name: new_user.name,
-                email: new_user.email,
-            }))
-        } else {
-        Err(CustomError::InvalidInput {field:"user with this state already exist"})
-    }
+pub fn event_persistent(
+    session: &CurrentSession,
+    new_user: &UserEvent,
+    user_id: Uuid,
+    user_state: &UserState,
+) -> Result<&'static str> {
+    let user_json: String = serde_json::to_string(&new_user).unwrap();
+    session
+        .query_with_values(USER_EVENT_STORE_QUERY, query_values!(user_id, user_json))
+        .expect("insert error");
+    state_persistent(&session, &user_state, user_id);
+    Ok("successfully event stored")
 }
-
-/// this method is used to retrieve the id from email
-pub fn get_id_by_email(user_reg: &UserRegistration) -> Result<Uuid, ParseError> {
-    //let bytes= user_reg.email.to_lowercase().bytes();
-    let user_id = Uuid::parse_str(&user_reg.email);
-    user_id
+fn state_persistent(
+    session: &CurrentSession,
+    new_user: &UserState,
+    user_id: Uuid,
+) -> Result<&'static str> {
+    let user_state_json: String = serde_json::to_string(&new_user).unwrap();
+    session
+        .query_with_values(
+            USER_STATE_STORE_QUERY,
+            query_values!(user_id, user_state_json),
+        )
+        .expect("insert error");
+    Ok("successfully event stored")
 }

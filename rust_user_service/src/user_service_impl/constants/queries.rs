@@ -29,4 +29,7 @@ pub const USER_EVENT_STORE_QUERY: &str = "INSERT INTO user_ks.user_events (user_
 pub const USER_STATE_STORE_QUERY: &str = "INSERT INTO user_ks.user_states (user_id,user_state) \
         VALUES (?,?)";
 
-pub const IS_PRESENT_QUERY: &str = "SELECT * FROM user_ks.user_states WHERE user_id = ? ";
+pub const SELECT_QUERY: &str = "SELECT * FROM user_ks.user_states WHERE user_id = ? ";
+
+pub const SELECT_ALL_QUERY: &str = "SELECT * FROM user_ks.user_states";
+

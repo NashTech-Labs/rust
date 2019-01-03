@@ -5,10 +5,6 @@ use crate::user_service_impl::eventsourcing::user_state::models::UserState;
 use crate::user_service_impl::models::p_user::PUser;
 use eventsourcing::{Result,Aggregate};
 
-/*
-pub struct User;
-*/
-
 impl Aggregate for PUser {
     type Event = UserEvent;
     type Command = UserCommand;
@@ -27,12 +23,13 @@ impl Aggregate for PUser {
     fn handle_command(_state: &Self::State, cmd: Self::Command) -> Result<Vec<Self::Event>> {
         let user_event: UserEvent = match cmd {
             UserCommand::CreateUser(new_user) => UserEvent::UserCreated(PUser {
-                id: get_id_by_email(&new_user).unwrap().to_string(),
+                id: get_id_by_email(&new_user).to_string(),
                 name: new_user.name,
                 email: new_user.email,
                 password: new_user.password,
             }),
         };
+        println!("cmd");
         Ok(vec![user_event])
     }
 }

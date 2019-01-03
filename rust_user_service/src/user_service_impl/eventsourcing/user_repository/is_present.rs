@@ -1,11 +1,10 @@
 use cdrs::query::QueryExecutor;
 use crate::user_service_impl::env_setup::connection::CurrentSession;
-use uuid::Uuid;
+use crate::user_service_impl::constants::queries::IS_PRESENT_QUERY;
 
-pub fn is_present(session: &CurrentSession, id: Uuid) -> bool {
-    let check_struct_cql = "Select * FROM user_ks.user_states WHERE id = ? ";
-    session
-        .query_with_values(check_struct_cql, query_values!(id))
+pub fn is_present(session: &CurrentSession, id: String) -> bool {
+        session
+        .query_with_values(IS_PRESENT_QUERY, query_values!(id))
         .expect("isPresent error")
         .get_body()
         .expect("get body")

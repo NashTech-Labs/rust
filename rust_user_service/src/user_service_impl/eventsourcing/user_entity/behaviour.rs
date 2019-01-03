@@ -3,8 +3,11 @@ use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
 use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
 use crate::user_service_impl::eventsourcing::user_state::models::UserState;
 use crate::user_service_impl::models::p_user::PUser;
-use crate::user_service_impl::models::user_registration::UserRegistration;
-use eventsourcing::{eventstore::MemoryEventStore, prelude::*, Result};
+use eventsourcing::{Result,Aggregate};
+
+/*
+pub struct User;
+*/
 
 impl Aggregate for PUser {
     type Event = UserEvent;
@@ -13,8 +16,8 @@ impl Aggregate for PUser {
 
     fn apply_event(state: &Self::State, evt: Self::Event) -> Result<Self::State> {
         let user_state: UserState = match evt {
-            UserEvent::UserCreated(PUser) => UserState {
-                user: PUser,
+            UserEvent::UserCreated(puser) => UserState {
+                user: puser,
                 generation: state.generation + 1,
             },
         };

@@ -1,8 +1,4 @@
-use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
 use crate::user_service_impl::models::p_user::PUser;
-use crate::user_service_impl::models::user_registration::UserRegistration;
-use uuid::parser::ParseError;
-use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Event)]
 #[event_type_version("1.0")]

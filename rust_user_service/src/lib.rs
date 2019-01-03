@@ -9,7 +9,6 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate failure;
-#[macro_use]
 extern crate eventsourcing;
 #[macro_use]
 extern crate eventsourcing_derive;

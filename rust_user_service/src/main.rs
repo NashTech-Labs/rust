@@ -5,9 +5,8 @@ extern crate user_service;
 
 use actix_web::{http, server, App};
 use listenfd::ListenFd;
-use std::thread;
 
-use std::cell::Cell;
+use eventsourcing::eventstore::MemoryEventStore;
 use user_service::user_service_impl::constants::constant::SERVER_BIND_PORT;
 use user_service::user_service_impl::controller::handler::initializer;
 use user_service::user_service_impl::controller::handler::{
@@ -18,14 +17,14 @@ use user_service::user_service_impl::controller::handler::{
 use user_service::user_service_impl::env_setup::connection::connect;
 
 fn main() {
+    let _user_store: MemoryEventStore = MemoryEventStore::new();
     ::std::env::set_var("RUST_LOG", "actix_web=debug");
     env_logger::init();
 
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
-            .resource("/set_up", |r| r.method(http::Method::GET)
-                .with(initializer))
+            .resource("/set_up", |r| r.method(http::Method::GET).with(initializer))
             .resource("/create_user", |r| {
                 r.method(http::Method::POST).with(create_user)
             })

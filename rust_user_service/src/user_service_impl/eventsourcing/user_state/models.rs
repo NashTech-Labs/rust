@@ -1,5 +1,5 @@
 use crate::user_service_impl::models::p_user::PUser;
-use eventsourcing::{eventstore::MemoryEventStore, prelude::*, Result};
+use eventsourcing::{prelude::*};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct UserState {

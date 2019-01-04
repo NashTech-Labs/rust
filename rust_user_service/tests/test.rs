@@ -84,21 +84,22 @@ fn test_insert_not_first_time() {
     assert!(response.status().is_client_error());
 }
 
-/*
+
 #[test]
 fn test_display() {
     let mut srv = test::TestServer::with_factory(create_app);
 
-    let request = srv.client(http::Method::GET, "/show/1").finish().unwrap();
+    let request: ClientRequest = srv.client(http::Method::GET, "/get_user/9216d4b7-3f05-5118-88d4-2daa9ec67418").finish().unwrap();
     let response:ClientResponse = srv.execute(request.send()).unwrap();
-
-    assert!(response.status().is_success());
 
     let bytes = srv.execute(response.body()).unwrap();
     let body = str::from_utf8(&bytes).unwrap();
-    assert_eq!(body, "{\"roll_no\":1,\"name\":\"ayush\",\"marks\":80}");
+
+    let struct_body: Value = serde_json::from_str(body).unwrap();
+    assert_eq!(struct_body, "{'id': '9216d4b7-3f05-5118-88d4-2daa9ec67418','name': 'abhishek','email': 'abhishek@gmail.com'}");
 }
 
+/*
 #[test]
 fn test_update() {
     let stu = Student { roll_no: 1, name: "ayush".to_string(), marks: 80 };

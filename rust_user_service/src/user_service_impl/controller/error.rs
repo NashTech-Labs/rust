@@ -3,7 +3,7 @@ use actix_web::{HttpResponse, http, error};
 #[derive(Fail, Debug)]
 pub enum CustomError {
     #[fail(display = "internal error {}",field)]
-    InternalError {field:&'static str},
+    InternalError { field:&'static str},
     #[fail(display = "invalid request {}",field)]
     InvalidInput { field: &'static str},
     #[fail(display = "timeout")]

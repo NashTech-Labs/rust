@@ -29,7 +29,6 @@ impl Aggregate for PUser {
                 password: new_user.password,
             }),
         };
-        println!("cmd");
         Ok(vec![user_event])
     }
 }

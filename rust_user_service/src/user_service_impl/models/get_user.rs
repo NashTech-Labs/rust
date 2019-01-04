@@ -5,6 +5,6 @@ use cdrs::{self, types::prelude::*};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, IntoCDRSValue, TryFromRow)]
 pub struct GetUser {
-    user_id: String,
-    user_state: String,
+    pub user_id: String,
+    pub user_state: String,
 }

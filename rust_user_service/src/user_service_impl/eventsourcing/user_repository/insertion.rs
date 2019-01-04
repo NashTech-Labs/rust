@@ -46,7 +46,7 @@ fn state_persistent<'a, 'b>(
         query_values!(user_id, user_state_json),
     );
     match query_status {
-        Frame => Ok("successfully state stored"),
-        Error => Err(CustomError::InternalError{field:"error in state persistent"}),
+        _Frame => Ok("successfully state stored"),
+        _Error => Err(CustomError::InternalError{field:"error in state persistent"}),
     }
 }

@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use actix_web::{Json, Result};
 use actix_web::Path;
 use actix_web::State;
@@ -11,6 +13,7 @@ use crate::user_service_impl::env_setup::keyspace::create_keyspace;
 use crate::user_service_impl::env_setup::table::create_table;
 use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
 use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
+use crate::user_service_impl::eventsourcing::user_repository::display::select_all_user;
 use crate::user_service_impl::eventsourcing::user_repository::display::select_user;
 use crate::user_service_impl::eventsourcing::user_repository::insertion::event_persistent;
 use crate::user_service_impl::eventsourcing::user_repository::is_present::is_present;
@@ -22,7 +25,6 @@ use crate::user_service_impl::models::user_login::UserLogin;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::utilities::initial_state::initial_state;
 use crate::user_service_impl::utilities::mappers::user_mapper;
-use crate::user_service_impl::eventsourcing::user_repository::display::select_all_user;
 
 pub struct AppState {
     pub session: CurrentSession,
@@ -69,15 +71,19 @@ pub fn get_user(data: State<AppState>, user_id: Path<String>) -> Result<Json<Use
 
 pub fn get_all_users(data: State<AppState>) -> Result<Vec<User>, CustomError> {
     let result: Vec<GetUser> = select_all_user(&data.session);
+    let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
     if result.is_empty() {
         Err(CustomError::InternalError { field: "error in getting all users" })
     } else {
-        let user_state: UserState = serde_json::from_str(&result[TAKE_FIRST].user_state).unwrap();
-        Ok(vec![user_mapper(user_state.user)])
+        for one in result {
+            let user_state: UserState = serde_json::from_str(&one.user_state).unwrap();
+            user_list.borrow_mut().push(user_mapper(user_state.user));
+        }
+        Ok(user_list.borrow().to_vec())
     }
 }
 
-pub fn user_login(data: State<AppState>,user_login: Json<UserLogin>) -> Result<&'static str, CustomError> {
+pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>) -> Result<&'static str, CustomError> {
     unimplemented!()
 }
 

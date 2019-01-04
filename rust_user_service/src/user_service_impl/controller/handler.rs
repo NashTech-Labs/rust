@@ -19,15 +19,11 @@ use crate::user_service_impl::models::user_login::UserLogin;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::utilities::initial_state::initial_state;
 use crate::user_service_impl::utilities::mappers::user_mapper;
-/*
-use crate::user_service_impl::env_setup::connection::{CurrentSession, connect};
-*/
+
 pub struct AppState {
     pub session: CurrentSession,
 }
-/*
-const SESSION: CurrentSession = connect();
-*/
+
 pub fn initializer(data: State<AppState>) -> Result<&'static str> {
     create_keyspace(&data.session);
     create_table(&data.session);
@@ -45,13 +41,11 @@ pub fn create_user(data: State<AppState>,user_reg: Json<UserRegistration>)
             PUser::handle_command(&initial_user_state, create_user_command).unwrap();
         let user_state: UserState =
             PUser::apply_event(&initial_user_state, user_events[TAKE_FIRST].clone()).unwrap();
-        let _result: &str = match event_persistent(&data.session,&user_events[TAKE_FIRST],
+        match event_persistent(&data.session,&user_events[TAKE_FIRST],
             new_user_id,&user_state) {
-            Ok(_) => "User Event Persisted",
-            _ => "Internal Error",
-        };
-
-        Ok(Json(user_mapper(user_state.user)))
+            Ok(_) => Ok(Json(user_mapper(user_state.user))),
+            _custom_error => Err(CustomError::InvalidInput {field:"Internal Server Error"}),
+        }
 
     } else {
         Err(CustomError::InvalidInput {

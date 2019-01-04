@@ -23,7 +23,7 @@ impl Aggregate for PUser {
     fn handle_command(_state: &Self::State, cmd: Self::Command) -> Result<Vec<Self::Event>> {
         let user_event: UserEvent = match cmd {
             UserCommand::CreateUser(new_user) => UserEvent::UserCreated(PUser {
-                id: get_id_by_email(&new_user).to_string(),
+                id: get_id_by_email(&new_user.email).to_string(),
                 name: new_user.name,
                 email: new_user.email,
                 password: new_user.password,

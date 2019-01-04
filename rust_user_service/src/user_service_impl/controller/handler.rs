@@ -39,7 +39,7 @@ pub fn initializer(data: State<AppState>) -> Result<&'static str> {
 pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
                    -> Result<Json<User>, CustomError> {
     let new_user: UserRegistration = user_reg.into_inner();
-    let new_user_id: String = get_id_by_email(&new_user).to_string();
+    let new_user_id: String = get_id_by_email(&new_user.email).to_string();
     if is_present(&data.session, new_user_id.clone()) {
         let initial_user_state: UserState = initial_state();
         let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
@@ -83,12 +83,29 @@ pub fn get_all_users(data: State<AppState>) -> Result<Vec<User>, CustomError> {
     }
 }
 
+///this method is used to authenticate the user so that he can get his id
 pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>) -> Result<&'static str, CustomError> {
-    unimplemented!()
+    let u_login: UserLogin = user_login.into_inner();
+    let user_email: String = u_login.email;
+    let user_id:Uuid = get_id_by_email(&user_email);
+    let user_status: Vec<GetUser>= select_user(&data.session,user_id.clone().to_string());
+    let result: &'static str;
+    if user_status.is_empty() {
+        Err(CustomError::InvalidInput { field: "user not found" })
+    } else {
+        let user_state: UserState = serde_json::from_str(&user_status[TAKE_FIRST].user_state).unwrap();
+        let user_password: String =user_state.user.password;
+        if user_password == u_login.passowrd {
+           result = user_id.to_string().as_str();
+            Ok(result)
+        } else {
+            Err(CustomError::InvalidInput { field: "username and password doesn't matched" })
+        }
+    }
 }
 
 /// this method is used to retrieve the id from email
-pub fn get_id_by_email(user_reg: &UserRegistration) -> Uuid {
-    let user_id = Uuid::new_v5(&Uuid::NAMESPACE_URL, user_reg.email.as_bytes());
+pub fn get_id_by_email(user_email: &String) -> Uuid {
+    let user_id = Uuid::new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
     user_id
 }

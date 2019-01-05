@@ -1,7 +1,8 @@
 use actix_web::Path;
 use cdrs::query::QueryExecutor;
 use cdrs::types::prelude::*;
-use env_set_up::{connection::*, models::Student};
+use env_set_up::connection::CurrentSession;
+use models::model::Student;
 
 pub fn select_struct(session: &CurrentSession, path: Path<i32>) -> Option<Student> {
     let select_struct_cql = "SELECT * FROM student_ks.my_student_table where roll_no = ?";
@@ -13,21 +14,18 @@ pub fn select_struct(session: &CurrentSession, path: Path<i32>) -> Option<Studen
         .expect("get body")
         .into_rows()
         .expect("into rows");
-    let is_exist = rows.is_empty();
+    if rows.is_empty()
+        { None } else {
+        let mut my_row: Student = Student {
+            roll_no: 0,
+            name: String::new(),
+            marks: 0,
+        };
 
-    let mut my_row:Student = Student{
-        roll_no:0,
-        name:String::new(),
-        marks:0
-    } ;
+        for row in rows {
+            my_row = Student::try_from_row(row).expect("into Student");
+        }
 
-    for row in rows {
-        my_row = Student::try_from_row(row).expect("into Student");
-    }
-
-    match is_exist{
-        true => None,
-        false => Some(my_row)
-
+        Some(my_row)
     }
 }

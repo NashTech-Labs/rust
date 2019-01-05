@@ -4,8 +4,9 @@ extern crate scylladb_poc;
 extern crate serde_json;
 extern crate env_logger;
 
-mod handler;
-use handler::*;
+use scylladb_poc::env_set_up::{connection::connect,keyspace::create_keyspace,
+                               table::create_table};
+use scylladb_poc::handlers::handler::{insert,delete,show,update};
 
 use actix_web::{App,http, server};
 use listenfd::ListenFd;
@@ -13,6 +14,10 @@ use listenfd::ListenFd;
 fn main() {
     ::std::env::set_var("RUST_LOG", "actix_web=debug");
     env_logger::init();
+    let session = connect();
+    create_keyspace(&session);
+    create_table(&session);
+
     let mut listenfd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::new()
@@ -33,6 +38,3 @@ fn main() {
 
     server.run();
 }
-
-#[cfg(test)]
-mod test;

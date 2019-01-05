@@ -1,4 +1,3 @@
-#![feature(core_intrinsics)]
 #[macro_use]
 extern crate cdrs;
 #[macro_use]
@@ -15,7 +14,6 @@ pub mod env_set_up {
     pub mod connection;
     pub mod keyspace;
     pub mod table;
-    pub mod models;
 }
 
 pub mod crud {
@@ -23,7 +21,17 @@ pub mod crud {
     pub mod delete;
     pub mod update;
     pub mod display;
-    pub mod isPresent;
+    pub mod is_present;
+}
+
+pub mod models {
+    pub mod model;
 }
 
 pub mod error;
+
+pub mod handlers{
+    pub mod handler;
+}
+
+pub mod constants;

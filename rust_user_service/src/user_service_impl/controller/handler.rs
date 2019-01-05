@@ -84,20 +84,18 @@ pub fn get_all_users(data: State<AppState>) -> Result<Vec<User>, CustomError> {
 }
 
 ///this method is used to authenticate the user so that he can get his id
-pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>) -> Result<&'static str, CustomError> {
+pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>) -> Result<String, CustomError> {
     let u_login: UserLogin = user_login.into_inner();
     let user_email: String = u_login.email;
     let user_id:Uuid = get_id_by_email(&user_email);
     let user_status: Vec<GetUser>= select_user(&data.session,user_id.clone().to_string());
-    let result: &'static str;
     if user_status.is_empty() {
         Err(CustomError::InvalidInput { field: "user not found" })
     } else {
         let user_state: UserState = serde_json::from_str(&user_status[TAKE_FIRST].user_state).unwrap();
         let user_password: String =user_state.user.password;
         if user_password == u_login.passowrd {
-           result = user_id.to_string().as_str();
-            Ok(result)
+            Ok(user_id.to_string())
         } else {
             Err(CustomError::InvalidInput { field: "username and password doesn't matched" })
         }

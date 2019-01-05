@@ -29,9 +29,10 @@ pub fn event_persistent(
         Ok(_) => HttpResponse::new(http::StatusCode::OK),
         Err(_) => HttpResponse::new(http::StatusCode::INTERNAL_SERVER_ERROR),
     };
-    match status {
-        _OK => Ok("successfully event stored"),
-        _INTERNAL_SERVER_ERROR => Err(CustomError::InternalError{field:"error in event persistent"}),
+    if status.status().is_success() {
+        Ok("successfully event stored")
+    } else {
+        Err(CustomError::InternalError { field: "error in event persistent" })
     }
 }
 
@@ -45,8 +46,9 @@ fn state_persistent<'a, 'b>(
         USER_STATE_STORE_QUERY,
         query_values!(user_id, user_state_json),
     );
-    match query_status {
-        _Frame => Ok("successfully state stored"),
-        _Error => Err(CustomError::InternalError{field:"error in state persistent"}),
+    if query_status.is_ok() {
+        Ok("successfully state stored")
+    } else {
+        Err(CustomError::InternalError { field: "error in state persistent" })
     }
 }

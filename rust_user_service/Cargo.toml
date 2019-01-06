@@ -24,3 +24,4 @@ actix-web = "0.7.17"
 
 uuid = { version = "0.7", features = ["v5"] }
 tramp = "0.3.0"
+futures = "*"

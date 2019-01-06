@@ -23,16 +23,18 @@ fn main() {
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
-            .resource("/set_up", |r| r.method(http::Method::GET).with(initializer))
+            .resource("/set_up", |r| r.method(http::Method::GET)
+                .with(initializer))
             .resource("/create_user", |r| {
                 r.method(http::Method::POST).with(create_user)
             })
-            .resource("/login", |r| r.method(http::Method::POST).with(user_login))
+            .resource("/login", |r| r.method(http::Method::POST)
+                .with(user_login))
             .resource("/get_user/{user_id}", |r| {
                 r.method(http::Method::GET).with(get_user)
             })
             .resource("/get_user", |r| {
-                r.method(http::Method::GET).with(get_all_users)
+                r.method(http::Method::GET).f(get_all_users)
             })
     });
     server = if let Some(l) = listenfd.take_tcp_listener(TAKE_FIRST).unwrap() {

@@ -1,10 +1,12 @@
 use std::cell::RefCell;
 
-use actix_web::{Json, Result};
+use actix_web::{Json, http, Result};
 use actix_web::Path;
 use actix_web::State;
 use eventsourcing::Aggregate;
 use uuid::Uuid;
+//use bytes::Bytes;
+use futures::stream::once;
 
 use crate::user_service_impl::constants::constant::TAKE_FIRST;
 use crate::user_service_impl::controller::error::CustomError;
@@ -25,17 +27,24 @@ use crate::user_service_impl::models::user_login::UserLogin;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::utilities::initial_state::initial_state;
 use crate::user_service_impl::utilities::mappers::user_mapper;
+use actix_web::HttpRequest;
+use actix_web::Body;
+use actix_web::HttpResponse;
 
 pub struct AppState {
     pub session: CurrentSession,
 }
 
+/// initializer is used to create keyspace and tables
+/// takes state which provide session for queries' execution
 pub fn initializer(data: State<AppState>) -> Result<&'static str> {
     create_keyspace(&data.session);
     create_table(&data.session);
     Ok("environment successfully up")
 }
 
+
+/// create_user
 pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
                    -> Result<Json<User>, CustomError> {
     let new_user: UserRegistration = user_reg.into_inner();
@@ -44,13 +53,17 @@ pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
         let initial_user_state: UserState = initial_state();
         let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
         let user_events: Vec<UserEvent> =
-            PUser::handle_command(&initial_user_state, create_user_command).unwrap();
+            PUser::handle_command(&initial_user_state, create_user_command)
+                .unwrap();
         let user_state: UserState =
-            PUser::apply_event(&initial_user_state, user_events[TAKE_FIRST].clone()).unwrap();
+            PUser::apply_event(&initial_user_state, user_events[TAKE_FIRST]
+                .clone()).unwrap();
         match event_persistent(&data.session, &user_events[TAKE_FIRST],
                                new_user_id, &user_state) {
             Ok(_) => Ok(Json(user_mapper(user_state.user))),
-            _custom_error => Err(CustomError::InvalidInput { field: "Internal Server Error" }),
+            Err(_) => Err(CustomError::InvalidInput {
+                field: "Internal Server Error"
+            }),
         }
     } else {
         Err(CustomError::InvalidInput {
@@ -59,51 +72,65 @@ pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
     }
 }
 
-pub fn get_user(data: State<AppState>, user_id: Path<String>) -> Result<Json<User>, CustomError> {
+pub fn get_user(data: State<AppState>, user_id: Path<String>)
+                -> Result<Json<User>, CustomError> {
     let result: Vec<GetUser> = select_user(&data.session, user_id.into_inner());
     if result.is_empty() {
         Err(CustomError::InvalidInput { field: "user with this id doesn't exist" })
     } else {
-        let user_state: UserState = serde_json::from_str(&result[TAKE_FIRST].user_state).unwrap();
+        let user_state: UserState = serde_json::
+        from_str(&result[TAKE_FIRST].user_state).unwrap();
         Ok(Json(user_mapper(user_state.user)))
     }
 }
 
-pub fn get_all_users(data: State<AppState>) -> Result<Vec<User>, CustomError> {
-    let result: Vec<GetUser> = select_all_user(&data.session);
+pub fn get_all_users(req: &HttpRequest<AppState>) -> HttpResponse {
+    let result: Vec<GetUser> = select_all_user(&req.state().session);
     let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
     if result.is_empty() {
-        Err(CustomError::InternalError { field: "error in getting all users" })
+        //Err(CustomError::InternalError { field: "error in getting all users" })
+        HttpResponse::new(http::StatusCode::INTERNAL_SERVER_ERROR)
     } else {
         for one in result {
             let user_state: UserState = serde_json::from_str(&one.user_state).unwrap();
             user_list.borrow_mut().push(user_mapper(user_state.user));
         }
-        Ok(user_list.borrow().to_vec())
+        HttpResponse::Ok(user_list.borrow()
+            .to_vec())
+        /*HttpResponse::Ok()
+            .chunked().
+            body(Body::Streaming(Box::new(once(Ok(Bytes::from_static(user_list.borrow()
+                .to_vec()))))))*/
     }
 }
 
 ///this method is used to authenticate the user so that he can get his id
-pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>) -> Result<String, CustomError> {
+pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>)
+                  -> Result<String, CustomError> {
     let u_login: UserLogin = user_login.into_inner();
     let user_email: String = u_login.email;
-    let user_id:Uuid = get_id_by_email(&user_email);
-    let user_status: Vec<GetUser>= select_user(&data.session,user_id.clone().to_string());
+    let user_id: Uuid = get_id_by_email(&user_email);
+    let user_status: Vec<GetUser> = select_user(&data.session,
+                                                user_id.clone().to_string());
     if user_status.is_empty() {
         Err(CustomError::InvalidInput { field: "user not found" })
     } else {
-        let user_state: UserState = serde_json::from_str(&user_status[TAKE_FIRST].user_state).unwrap();
-        let user_password: String =user_state.user.password;
-        if user_password == u_login.passowrd {
+        let user_state: UserState = serde_json::
+        from_str(&user_status[TAKE_FIRST].user_state).unwrap();
+        let user_password: String = user_state.user.password;
+        if user_password == u_login.password {
             Ok(user_id.to_string())
         } else {
-            Err(CustomError::InvalidInput { field: "username and password doesn't matched" })
+            Err(CustomError::InvalidInput {
+                field: "username and password doesn't matched"
+            })
         }
     }
 }
 
 /// this method is used to retrieve the id from email
 pub fn get_id_by_email(user_email: &String) -> Uuid {
-    let user_id = Uuid::new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
+    let user_id: Uuid = Uuid::
+    new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
     user_id
 }

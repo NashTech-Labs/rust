@@ -25,3 +25,6 @@ actix-web = "0.7.17"
 uuid = { version = "0.7", features = ["v5"] }
 tramp = "0.3.0"
 futures = "*"
+bytes = "0.4.11"
+bincode = "0.6"
+chrono = "0.2"

@@ -7,10 +7,10 @@ use cdrs::query::QueryExecutor;
 
 use crate::user_service_impl::constants::queries::SELECT_QUERY;
 use crate::user_service_impl::env_setup::connection::CurrentSession;
-use crate::user_service_impl::models::get_user::GetUser;
+use crate::user_service_impl::models::get_user::UserMapper;
 use crate::user_service_impl::constants::queries::SELECT_ALL_QUERY;
 
-pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<GetUser> {
+pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
     let user_state_rows: Vec<Row> = session
         .query_with_values(SELECT_QUERY, query_values!(user_id))
         .expect("is_select error")
@@ -19,11 +19,11 @@ pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<GetUser> {
         .into_rows()
         .expect("into rows");
     //convert(user_state_rows)
-    let get_user_list: RefCell<Vec<GetUser>> = RefCell::new(vec![]);
+    let get_user_list: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
     for row in user_state_rows {
-        get_user_list.borrow_mut().push(GetUser::try_from_row(row).expect("into get user"));
+        get_user_list.borrow_mut().push(UserMapper::try_from_row(row).expect("into get user"));
     }
-    let result: Vec<GetUser> =get_user_list.borrow().to_vec();
+    let result: Vec<UserMapper> =get_user_list.borrow().to_vec();
     result
 }
 
@@ -45,7 +45,7 @@ fn convert(rows: Vec<Row>) -> Vec<GetUser> {
     tramp(sub_convert(rows, acc, index))
 }*/
 
-pub fn select_all_user(session: &CurrentSession) -> Vec<GetUser> {
+pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {
     let user_state_rows: Vec<Row> = session
         .query(SELECT_ALL_QUERY)
         .expect("is_select_all error")
@@ -54,10 +54,10 @@ pub fn select_all_user(session: &CurrentSession) -> Vec<GetUser> {
         .into_rows()
         .expect("into rows");
 
-    let get_user_list: RefCell<Vec<GetUser>> = RefCell::new(vec![]);
+    let get_user_list: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
     for row in user_state_rows {
-        get_user_list.borrow_mut().push(GetUser::try_from_row(row).expect("into get user"));
+        get_user_list.borrow_mut().push(UserMapper::try_from_row(row).expect("into get user"));
     }
-    let result: Vec<GetUser> =get_user_list.borrow().to_vec();
+    let result: Vec<UserMapper> =get_user_list.borrow().to_vec();
     result
 }

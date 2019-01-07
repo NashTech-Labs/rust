@@ -9,7 +9,9 @@ use user_service::user_service_impl::controller::handler::initializer;
 use user_service::user_service_impl::controller::handler::create_user;
 use user_service::user_service_impl::controller::handler::user_login;
 use user_service::user_service_impl::controller::handler::get_user;
+/*
 use user_service::user_service_impl::controller::handler::get_all_users;
+*/
 use user_service::user_service_impl::models::user_registration::UserRegistration;
 use actix_web::test::TestServer;
 use actix_web::client::ClientRequest;
@@ -21,10 +23,10 @@ fn create_app() -> App<AppState> {
         .resource("/create_user", |r| {
             r.method(http::Method::POST).with(create_user)
         })
-           /* .resource("/login", |r| r.method(http::Method::POST).with(user_login))
+            .resource("/login", |r| r.method(http::Method::POST).with(user_login))
             .resource("/get_user/{user_id}", |r| {
                 r.method(http::Method::GET).with(get_user)
-            })
+            })/*
             .resource("/get_user", |r| {
                 r.method(http::Method::GET).with(get_all_users)
             })*/
@@ -43,15 +45,15 @@ fn test_initializer() {
     let bytes = srv.execute(response.body()).unwrap();
     let body = str::from_utf8(&bytes).unwrap();
 
-    assert_eq!(body, "successfully up");
+    assert_eq!(body, "environment successfully up");
 }
 
 #[test]
 fn test_insert_first_time() {
     let user_reg: UserRegistration = UserRegistration {
-        name: "amita".to_string(),
-        email: "mai@gmail.com".to_string(),
-        password: "amita".to_string()
+        name: "shikha".to_string(),
+        email: "shikha97887@gmail.com".to_string(),
+        password: "shikha123".to_string()
     };
     let mut srv: TestServer = test::TestServer::with_factory(create_app);
 
@@ -61,10 +63,10 @@ fn test_insert_first_time() {
 
     assert!(response.status().is_success());
 
-    let bytes = srv.execute(response.body()).unwrap();
+   /* let bytes = srv.execute(response.body()).unwrap();
     let body = str::from_utf8(&bytes).unwrap();
     let struct_body: Value = serde_json::from_str(body).unwrap();
-    assert_eq!(struct_body, "{'email': 'mai@gmail.com', 'id': '2f6f4c06-753c-5d29-9cec-324d7168577c', 'name' : 'amita'}");
+    assert_eq!(struct_body, "{'email': 'shikha@gmail.com', 'id': '8eea6a91-2c44-5dfd-b889-39992ab8d510', 'name' : 'shikha'}");*/
 }
 
 
@@ -99,41 +101,43 @@ fn test_display() {
     assert_eq!(struct_body, "{'id': '9216d4b7-3f05-5118-88d4-2daa9ec67418','name': 'abhishek','email': 'abhishek@gmail.com'}");
 }
 
+#[test]
+fn test_user_login() {
+    let user_reg: UserRegistration = UserRegistration {
+        name: "rahul".to_string(),
+        email: "rsb007@gmail.com".to_string(),
+        password: "rsb007@".to_string()
+    };
+    let mut srv: TestServer = test::TestServer::with_factory(create_app);
+
+    let request: ClientRequest = srv.client(http::Method::POST, "/login").json(user_reg)
+        .unwrap();
+    let response:ClientResponse = srv.execute(request.send()).unwrap();
+
+    let bytes = srv.execute(response.body()).unwrap();
+    let body = str::from_utf8(&bytes).unwrap();
+    assert_eq!(body, "f95dfd0b-e2fa-5b88-a284-578f9a015f4d");
+}
+#[test]
+fn test_user_login_not_exist() {
+    let user_reg: UserRegistration = UserRegistration {
+        name: "rahul".to_string(),
+        email: "rahul@gmail.com".to_string(),
+        password: "rsb007@".to_string()
+    };
+    let mut srv: TestServer = test::TestServer::with_factory(create_app);
+
+    let request: ClientRequest = srv.client(http::Method::POST, "/login").json(user_reg)
+        .unwrap();
+    let response:ClientResponse = srv.execute(request.send()).unwrap();
+
+    let bytes = srv.execute(response.body()).unwrap();
+    let body = str::from_utf8(&bytes).unwrap();
+    assert_eq!(body, "");
+}
+
+
 /*
-#[test]
-fn test_update() {
-    let stu = Student { roll_no: 1, name: "ayush".to_string(), marks: 80 };
-    let mut srv = test::TestServer::with_factory(create_app);
-
-    let request = srv.client(http::Method::PUT, "/update/1").json(stu)
-        .unwrap();
-    let response:ClientResponse = srv.execute(request.send()).unwrap();
-
-    assert!(response.status().is_success());
-
-    let bytes = srv.execute(response.body()).unwrap();
-    let body = str::from_utf8(&bytes).unwrap();
-    assert_eq!(body, "student with this id updated");
-}
-
-#[test]
-fn test_update_student_not_exist() {
-    let stu = Student { roll_no: 1, name: "ayush".to_string(), marks: 80 };
-    let mut srv = test::TestServer::with_factory(create_app);
-
-    let request = srv.client(http::Method::PUT, "/update/11").json(stu)
-        .unwrap();
-    let response:ClientResponse = srv.execute(request.send()).unwrap();
-
-    assert!(response.status().is_success());
-
-    let bytes = srv.execute(response.body()).unwrap();
-    let body = str::from_utf8(&bytes).unwrap();
-    assert_eq!(body, "student doesn't exist");
-}
-
-
-
 #[test]
 fn test_display_student_not_exist() {
     let mut srv = test::TestServer::with_factory(create_app);

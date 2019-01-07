@@ -33,7 +33,7 @@ fn main() {
             .resource("/get_user/{user_id}", |r| {
                 r.method(http::Method::GET).with(get_user)
             })
-            .resource("/get_user", |r| {
+            .resource("/get_users", |r| {
                 r.method(http::Method::GET).f(get_all_users)
             })
     });

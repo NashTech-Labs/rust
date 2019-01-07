@@ -1,6 +1,7 @@
 use crate::user_service_impl::models::p_user::PUser;
 use eventsourcing::{prelude::*};
 
+///UserState is a struct which holds persistent user and its generation
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct UserState {
     pub user: PUser,

@@ -14,6 +14,6 @@ extern crate eventsourcing;
 extern crate eventsourcing_derive;
 extern crate uuid;
 //#[macro_use]
-extern crate tramp;
+//extern crate tramp;
 
 pub mod user_service_impl;

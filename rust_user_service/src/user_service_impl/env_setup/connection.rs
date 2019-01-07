@@ -4,6 +4,7 @@ use cdrs::cluster::session::{new as new_session, Session};
 use cdrs::load_balancing::RoundRobin;
 use crate::user_service_impl::constants::constant::DATABASE_PORT_ADDRESS;
 
+///creating a custom type of Current Session type
 pub type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
 /// connect function is used to create CurrentSession for database operation

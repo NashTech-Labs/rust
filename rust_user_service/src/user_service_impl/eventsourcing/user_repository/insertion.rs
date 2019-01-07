@@ -12,6 +12,7 @@ use crate::user_service_impl::env_setup::connection::CurrentSession;
 use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
 use crate::user_service_impl::eventsourcing::user_state::models::UserState;
 
+/// event_persistent is used to store the events against a particular user
 pub fn event_persistent(
     session: &CurrentSession,
     new_user: &UserEvent,
@@ -36,6 +37,7 @@ pub fn event_persistent(
     }
 }
 
+/// state_persistent is used to store the states against a particular user
 fn state_persistent<'a, 'b>(
     session: &'a CurrentSession,
     new_user: &'b UserState,

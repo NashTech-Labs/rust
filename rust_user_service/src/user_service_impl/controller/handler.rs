@@ -1,13 +1,10 @@
 use std::cell::RefCell;
 
-use actix_web::{Json, http, Result};
+use actix_web::{Json,Result};
 use actix_web::Path;
 use actix_web::State;
 use eventsourcing::Aggregate;
 use uuid::Uuid;
-//use bytes::Bytes;
-use std::marker::Sized;
-use futures::stream::once;
 
 use crate::user_service_impl::constants::constant::TAKE_FIRST;
 use crate::user_service_impl::controller::error::CustomError;
@@ -29,17 +26,16 @@ use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::utilities::initial_state::initial_state;
 use crate::user_service_impl::utilities::mappers::map_user;
 use actix_web::HttpRequest;
-use actix_web::Body;
 use actix_web::HttpResponse;
 use actix_web::Responder;
 use actix_web::Error;
 use crate::user_service_impl::utilities::wrapper::Outcomes;
 use crate::user_service_impl::utilities::wrapper::wrap_vec;
 
+///AppState is a struct with current session as field
 pub struct AppState {
     pub session: CurrentSession,
 }
-
 
 /// initializer is used to create keyspace and tables
 /// takes state which provide session for queries' execution
@@ -50,7 +46,10 @@ pub fn initializer(data: State<AppState>) -> Result<&'static str> {
 }
 
 
-/// create_user
+/// create_user is a method which takes struct of UserRegistration and AppState
+/// returns Result<Json<User>> in case of success and in case of failure,
+/// it will return CustomError
+/// create _user is used to storing the user details
 pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
                    -> Result<Json<User>, CustomError> {
     let new_user: UserRegistration = user_reg.into_inner();
@@ -78,6 +77,10 @@ pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
     }
 }
 
+/// get_user is a method which takes user_id in its Path URL
+/// returns Result<Json<User>> in case of success and in case of failure,
+/// it will return CustomError
+/// get_user is used to retrieve the user's details based on his/her user_id
 pub fn get_user(data: State<AppState>, user_id: Path<String>)
                 -> Result<Json<User>, CustomError> {
     let result: Vec<UserMapper> = select_user(&data.session, user_id.into_inner());
@@ -90,6 +93,8 @@ pub fn get_user(data: State<AppState>, user_id: Path<String>)
     }
 }
 
+///implementation for Outcomes
+/// Outcomes is a struct which has vec<User> as its field
 impl Responder for Outcomes {
     type Item = HttpResponse;
     type Error = Error;
@@ -103,6 +108,9 @@ impl Responder for Outcomes {
     }
 }
 
+/// get_all_users is a method which takes shared state of current session
+/// returns Responder
+/// get_all_users is used to retrieve list of all user's details
 pub fn get_all_users(req: &HttpRequest<AppState>) -> impl Responder {
     let user_mapper: Vec<UserMapper> = select_all_user(&req.state().session);
     let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
@@ -124,9 +132,9 @@ pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>)
                   -> Result<String, CustomError> {
     let u_login: UserLogin = user_login.into_inner();
     let user_email: String = u_login.email;
-    let user_id: Uuid = get_id_by_email(&user_email);
+    let user_id: String= get_id_by_email(&user_email).to_string();
     let user_status: Vec<UserMapper> = select_user(&data.session,
-                                                   user_id.clone().to_string());
+                                                   user_id.clone());
     if user_status.is_empty() {
         Err(CustomError::InvalidInput { field: "user not found" })
     } else {
@@ -134,7 +142,7 @@ pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>)
         from_str(&user_status[TAKE_FIRST].user_state).unwrap();
         let user_password: String = user_state.user.password;
         if user_password == u_login.password {
-            Ok(user_id.to_string())
+            Ok(user_id)
         } else {
             Err(CustomError::InvalidInput {
                 field: "username and password doesn't matched"

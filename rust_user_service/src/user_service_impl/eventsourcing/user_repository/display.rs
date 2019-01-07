@@ -10,6 +10,7 @@ use crate::user_service_impl::env_setup::connection::CurrentSession;
 use crate::user_service_impl::models::get_user::UserMapper;
 use crate::user_service_impl::constants::queries::SELECT_ALL_QUERY;
 
+/// select_user is used to retrieve a user detail based on user_id
 pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
     let user_state_rows: Vec<Row> = session
         .query_with_values(SELECT_QUERY, query_values!(user_id))
@@ -45,6 +46,7 @@ fn convert(rows: Vec<Row>) -> Vec<GetUser> {
     tramp(sub_convert(rows, acc, index))
 }*/
 
+/// select_all_user is used to retrieve list of all users' details
 pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {
     let user_state_rows: Vec<Row> = session
         .query(SELECT_ALL_QUERY)

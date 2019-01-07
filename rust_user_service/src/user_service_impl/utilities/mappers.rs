@@ -1,6 +1,7 @@
 use crate::user_service_impl::models::p_user::PUser;
 use crate::user_service_impl::models::user::User;
 
+/// map_user is used to map PUser into User
 pub fn map_user(user: PUser) -> User {
     User {
         id: user.id,

@@ -9,8 +9,6 @@ use uuid::Uuid;
 use crate::user_service_impl::constants::constant::TAKE_FIRST;
 use crate::user_service_impl::controller::error::CustomError;
 use crate::user_service_impl::env_setup::connection::CurrentSession;
-use crate::user_service_impl::env_setup::keyspace::create_keyspace;
-use crate::user_service_impl::env_setup::table::create_table;
 use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
 use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
 use crate::user_service_impl::eventsourcing::user_repository::display::select_all_user;
@@ -36,15 +34,6 @@ use crate::user_service_impl::utilities::wrapper::wrap_vec;
 pub struct AppState {
     pub session: CurrentSession,
 }
-
-/// initializer is used to create keyspace and tables
-/// takes state which provide session for queries' execution
-pub fn initializer(data: State<AppState>) -> Result<&'static str> {
-    create_keyspace(&data.session);
-    create_table(&data.session);
-    Ok("environment successfully up")
-}
-
 
 /// create_user is a method which takes struct of UserRegistration and AppState
 /// returns Result<Json<User>> in case of success and in case of failure,
@@ -100,7 +89,7 @@ impl Responder for Outcomes {
     type Error = Error;
 
     fn respond_to<S>(self, _req: &HttpRequest<S>) -> Result<HttpResponse, Error> {
-        let body = serde_json::to_string(&self)?;
+        let body: String = serde_json::to_string(&self)?;
 
         Ok(HttpResponse::Ok()
             .content_type("application/json")

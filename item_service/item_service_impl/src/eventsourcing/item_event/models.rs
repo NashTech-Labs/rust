@@ -1,6 +1,8 @@
 use std::time::Instant;
 use crate::models::item_status::ItemStatus;
 use crate::models::p_item::PItem;
+use crate::models::item_data::PItemData;
+use crate::models::item_status::PItemStatus;
 
 pub enum ItemEvent {
     ItemUpdated { item_id: i32, creator: String, title: String, description: String, item_status: ItemStatus, currency_id: String },

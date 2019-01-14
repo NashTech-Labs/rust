@@ -2,7 +2,7 @@ use crate::models::item_data::ItemData;
 use crate::models::location::Location;
 use std::time::Instant;
 use crate::models::item_status::ItemStatus;
-
+use crate::constants::constants::ZERO;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     pub id: i32,
@@ -18,30 +18,24 @@ pub struct Item {
 }
 
 impl Item {
-    pub fn new(id: i32,creator: String) -> Item {
+    pub fn new(id: i32,creator: String,
+               item_data: ItemData,
+                price: f32,
+                status: ItemStatus,
+                auction_start: Option<Instant>,
+                auction_end: Option<Instant>,
+                auction_winner: Option<String>) -> Item {
         Item {
-            id: 0,
-            creator: String::new(),
-            item_data: ItemData{
-                title: String::new(),
-                description: String::new(),
-                currency_id: String::new(),
-                increment: 0.0,
-                reserve_price: 0.0,
-                auction_duration: ,
-                category_id: None
-            },
-            price: 0.0,
-            status: (),
-            auction_start: None,
-            auction_end: None,
-            auction_winner: None,
-            location: Location{
-                country: String::new(),
-                state: String::new(),
-                city: String::new()
-            },
-            delivery_options: ()
+            id,
+            creator,
+            item_data,
+            price: price.bitor_assign(ZERO),
+            status: if status {status} else {Nil},
+            auction_start ,
+            auction_end,
+            auction_winner,
+            location: None,
+            delivery_options: None,
         }
     }
 }

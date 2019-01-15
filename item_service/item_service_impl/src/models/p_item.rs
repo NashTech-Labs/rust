@@ -1,5 +1,4 @@
 extern  crate cdrs;
-use std::time::Instant;
 use cdrs::types::prelude::*;
 
 use crate::models::item_data::{ItemData,PItemData};
@@ -14,8 +13,8 @@ pub struct PItem {
     pub price: f32,
     pub status: PItemStatus,
     //ends here
-    pub auction_start: Option<Instant>,
-    pub auction_end: Option<Instant>,
+    pub auction_start: Option<String>,
+    pub auction_end: Option<String>,
     pub auction_winner: Option<String>,
 }
 
@@ -26,8 +25,8 @@ impl PItem {
         item_data: PItemData,
         price: f32,
         status: PItemStatus,
-        auction_start: Option<Instant>,
-        auction_end: Option<Instant>,
+        auction_start: Option<String>,
+        auction_end: Option<String>,
         auction_winner: Option<String>,
     ) -> PItem {
         PItem {
@@ -55,7 +54,7 @@ impl PItem {
         }
     }
 }
-   /* pub fn start(start_time: Instant) -> PItem {
+   /* pub fn start(start_time: String) -> PItem {
         assert_eq!(status, PItemStatus::CREATED);
         PItem {
             id,

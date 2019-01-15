@@ -1,4 +1,3 @@
-use std::time::Instant;
 use std::ptr::null;
 
 use crate::constants::constants::ZERO;
@@ -13,10 +12,10 @@ pub struct Item {
     pub item_data: ItemData,
     pub price: f32,
     pub status: ItemStatus,
-    pub auction_start: Option<Instant>,
-    pub auction_end: Option<Instant>,
+    pub auction_start: Option<String>,
+    pub auction_end: Option<String>,
     pub auction_winner: Option<String>,
-    location: Location,
+    pub location: Location,
     /*delivery_options: DeliveryOptions,*/
 }
 
@@ -25,15 +24,14 @@ impl Item {
                item_data: ItemData,
                price: f32,
                status: ItemStatus,
-               auction_start: Option<Instant>,
-               auction_end: Option<Instant>,
+               auction_start: Option<String>,
+               auction_end: Option<String>,
                auction_winner: Option<String>) -> Item {
         let item_status: ItemStatus = match status {
             ItemStatus::CREATED => status,
             ItemStatus::AUCTION => status,
             ItemStatus::CANCELLED => status,
             ItemStatus::COMPLETED => status,
-            _ => null,
         };
         Item {
             id,

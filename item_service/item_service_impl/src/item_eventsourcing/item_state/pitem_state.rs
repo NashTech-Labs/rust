@@ -7,16 +7,26 @@ use cdrs::frame::IntoBytes;
 use cdrs::frame::TryFromRow;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::{self, types::prelude::*};
+use eventsourcing::AggregateState;
 
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct PItemState {
-    item: Option<PItem>
+    pub item: Option<PItem>,
+    pub generation: u64,
 }
 
 impl PItemState {
     fn new(pitem: Option<PItem>) -> PItemState {
         PItemState {
             item: pitem,
+            generation: 0,
         }
+    }
+}
+
+impl AggregateState for PItemState {
+    fn generation(&self) -> u64 {
+        self.generation
     }
 }
     /*pub fn empty() -> PItemState {

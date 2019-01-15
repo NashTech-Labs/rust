@@ -1,7 +1,7 @@
 use crate::models::p_item::PItem;
 use crate::models::item_data::PItemData;
 
-#[derive(Debug,Clone.Serialize,Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PItemCommand {
     CreateItem(PItem),
     UpdateItem { commander: String, item_data: PItemData },

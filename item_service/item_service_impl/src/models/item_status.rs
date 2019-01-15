@@ -1,5 +1,6 @@
-use controller::error::CustomError;
+use crate::controller::error::CustomError;
 
+#[derive(Debug,Clone,PartialEq,Serialize, Deserialize)]
 pub enum ItemStatus {
     CREATED,
     AUCTION,
@@ -7,6 +8,7 @@ pub enum ItemStatus {
     CANCELLED,
 }
 
+#[derive(Debug,Clone,PartialEq,Serialize, Deserialize)]
 pub enum PItemStatus {
     NOT_CREATED,
     CREATED,

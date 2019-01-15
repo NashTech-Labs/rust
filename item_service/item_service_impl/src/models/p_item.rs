@@ -1,16 +1,19 @@
+extern  crate cdrs;
 use std::time::Instant;
+use cdrs::types::prelude::*;
 
 use crate::models::item_data::{ItemData,PItemData};
 use crate::models::item_status::PItemStatus;
 
-
-#[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, /*IntoCDRSValue, TryFromRow, */PartialEq, Serialize, Deserialize)]
 pub struct PItem {
-    id: i32,
-    creator: String,
-    item_data: PItemData,
-    price: f32,
-    status: PItemStatus,
+   //it should be private
+    pub id: i32,
+    pub creator: String,
+    pub item_data: PItemData,
+    pub price: f32,
+    pub status: PItemStatus,
+    //ends here
     pub auction_start: Option<Instant>,
     pub auction_end: Option<Instant>,
     pub auction_winner: Option<String>,
@@ -39,20 +42,20 @@ impl PItem {
         }
     }
 
-    pub fn new_pitem(id: i32, creator: String, item_data: PItemData) -> PItem{
+    pub fn new_pitem(id: i32, creator: String, item_data: PItemData) -> PItem {
         PItem {
             id,
             creator,
             item_data,
-            price: 0,
+            price: 0.0,
             status: PItemStatus::CREATED,
             auction_start: None,
             auction_end: None,
             auction_winner: None,
         }
     }
-
-    pub fn start(start_time: Instant) -> PItem {
+}
+   /* pub fn start(start_time: Instant) -> PItem {
         assert_eq!(status, PItemStatus::CREATED);
         PItem {
             id,
@@ -93,7 +96,7 @@ impl PItem {
         }
     }
     pub fn cancel() -> PItem {
-        assert_eq!((status, PItemStatus::AUCTION) || (status, PItemStatus::CREATED));
+        assert_eq!(status, PItemStatus::AUCTION) || assert_eq!(status, PItemStatus::CREATED);
         PItem {
             id,
             creator,
@@ -130,3 +133,4 @@ impl PItem {
         }
     }
 }
+*/

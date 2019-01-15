@@ -1,8 +1,11 @@
-use crate::models::item_data::ItemData;
-use crate::models::location::Location;
 use std::time::Instant;
-use crate::models::item_status::ItemStatus;
+use std::ptr::null;
+
 use crate::constants::constants::ZERO;
+use crate::models::item_data::ItemData;
+use crate::models::item_status::ItemStatus;
+use crate::models::location::Location;
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     pub id: i32,
@@ -14,28 +17,39 @@ pub struct Item {
     pub auction_end: Option<Instant>,
     pub auction_winner: Option<String>,
     location: Location,
-    delivery_options: DeliveryOptions,
+    /*delivery_options: DeliveryOptions,*/
 }
 
 impl Item {
-    pub fn new(id: i32,creator: String,
+    pub fn new(id: i32, creator: String,
                item_data: ItemData,
-                price: f32,
-                status: ItemStatus,
-                auction_start: Option<Instant>,
-                auction_end: Option<Instant>,
-                auction_winner: Option<String>) -> Item {
+               price: f32,
+               status: ItemStatus,
+               auction_start: Option<Instant>,
+               auction_end: Option<Instant>,
+               auction_winner: Option<String>) -> Item {
+        let item_status: ItemStatus = match status {
+            ItemStatus::CREATED => status,
+            ItemStatus::AUCTION => status,
+            ItemStatus::CANCELLED => status,
+            ItemStatus::COMPLETED => status,
+            _ => null,
+        };
         Item {
             id,
             creator,
             item_data,
-            price: price.bitor_assign(ZERO),
-            status: if status {status} else {Nil},
-            auction_start ,
+            price: if price != ZERO { price } else { ZERO },
+            status: item_status,
+            auction_start,
             auction_end,
             auction_winner,
-            location: None,
-            delivery_options: None,
+            location: Location{
+                country: "".to_string(),
+                state: "".to_string(),
+                city: "".to_string()
+            },
+            //delivery_options: None,
         }
     }
 }

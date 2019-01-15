@@ -10,6 +10,7 @@ pub struct ItemData {
     pub category_id: Option<i32>,
 }
 
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PItemData {
     pub title: String,
     pub description: String,
@@ -60,9 +61,9 @@ impl PItemData {
         }
     }
 
-    pub fn differ_on_descciption(&self, that:PItemData) -> bool {
+    /*pub fn differ_on_descciption(&self, that:PItemData) -> bool {
         (self != that) && (that.PItem::with_description(desc))
-    }
+    }*/
 
 }
 

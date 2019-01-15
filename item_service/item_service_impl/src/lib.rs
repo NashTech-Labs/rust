@@ -18,7 +18,7 @@ pub mod env_setup;
 
 pub mod models;
 
-pub mod eventsourcing;
+pub mod item_eventsourcing;
 
 pub mod controller;
 

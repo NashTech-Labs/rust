@@ -1,10 +1,18 @@
 use std::cell::RefCell;
 
+<<<<<<< HEAD
+use actix_web::*;
+use eventsourcing::Aggregate;
+use uuid::Uuid;
+use bytes::Bytes;
+use futures::stream::once;
+=======
 use actix_web::{Json,Result};
 use actix_web::Path;
 use actix_web::State;
 use eventsourcing::Aggregate;
 use uuid::Uuid;
+>>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
 
 use crate::user_service_impl::constants::constant::TAKE_FIRST;
 use crate::user_service_impl::controller::error::CustomError;
@@ -79,6 +87,30 @@ pub fn get_user(data: State<AppState>, user_id: Path<String>)
         let user_state: UserState = serde_json::
         from_str(&result[TAKE_FIRST].user_state).unwrap();
         Ok(Json(map_user(user_state.user)))
+<<<<<<< HEAD
+    }
+}
+
+pub fn get_all_users(req: &HttpRequest<AppState>) -> HttpResponse {
+    let users: Vec<UserMapper> = select_all_user(&req.state().session);
+    let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
+    if users.is_empty() {
+        //Err(CustomError::InternalError { field: "error in getting all users" })
+        HttpResponse::new(http::StatusCode::INTERNAL_SERVER_ERROR)
+    } else {
+        for user in users {
+            let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
+            user_list.borrow_mut().push(map_user(user_state.user));
+        }
+
+       let array = user_list.borrow().to_vec();
+        let bytes = bincode::serde::serialize(&array,bincode::SizeLimit::Infinite).unwrap();
+        let user_byte_array = bincode::serde::deserialize(&bytes).unwrap();
+
+        HttpResponse::Ok()
+            .chunked().
+            body(Body::Streaming(Box::new(once(Ok(Bytes::from_static(user_byte_array))))))
+=======
     }
 }
 
@@ -113,6 +145,7 @@ pub fn get_all_users(req: &HttpRequest<AppState>) -> impl Responder {
         let vec_of_user: Vec<User> = user_list.borrow().to_vec();
 
         Ok(wrap_vec(vec_of_user))
+>>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
     }
 }
 
@@ -121,9 +154,15 @@ pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>)
                   -> Result<String, CustomError> {
     let u_login: UserLogin = user_login.into_inner();
     let user_email: String = u_login.email;
+<<<<<<< HEAD
+    let user_id: Uuid = get_id_by_email(&user_email);
+    let user_status: Vec<UserMapper> = select_user(&data.session,
+                                                   user_id.clone().to_string());
+=======
     let user_id: String= get_id_by_email(&user_email).to_string();
     let user_status: Vec<UserMapper> = select_user(&data.session,
                                                    user_id.clone());
+>>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
     if user_status.is_empty() {
         Err(CustomError::InvalidInput { field: "user not found" })
     } else {

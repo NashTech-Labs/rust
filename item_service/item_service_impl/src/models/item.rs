@@ -1,7 +1,10 @@
-use crate::models::item_data::ItemData;
-use crate::models::location::Location;
 use std::time::Instant;
+use std::ptr::null;
+
+use crate::constants::constants::ZERO;
+use crate::models::item_data::ItemData;
 use crate::models::item_status::ItemStatus;
+use crate::models::location::Location;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
@@ -14,34 +17,39 @@ pub struct Item {
     pub auction_end: Option<Instant>,
     pub auction_winner: Option<String>,
     location: Location,
-    delivery_options: DeliveryOptions,
+    /*delivery_options: DeliveryOptions,*/
 }
 
 impl Item {
-    pub fn new(id: i32,creator: String) -> Item {
+    pub fn new(id: i32, creator: String,
+               item_data: ItemData,
+               price: f32,
+               status: ItemStatus,
+               auction_start: Option<Instant>,
+               auction_end: Option<Instant>,
+               auction_winner: Option<String>) -> Item {
+        let item_status: ItemStatus = match status {
+            ItemStatus::CREATED => status,
+            ItemStatus::AUCTION => status,
+            ItemStatus::CANCELLED => status,
+            ItemStatus::COMPLETED => status,
+            _ => null,
+        };
         Item {
-            id: 0,
-            creator: String::new(),
-            item_data: ItemData{
-                title: String::new(),
-                description: String::new(),
-                currency_id: String::new(),
-                increment: 0.0,
-                reserve_price: 0.0,
-                auction_duration: ,
-                category_id: None
-            },
-            price: 0.0,
-            status: (),
-            auction_start: None,
-            auction_end: None,
-            auction_winner: None,
+            id,
+            creator,
+            item_data,
+            price: if price != ZERO { price } else { ZERO },
+            status: item_status,
+            auction_start,
+            auction_end,
+            auction_winner,
             location: Location{
-                country: String::new(),
-                state: String::new(),
-                city: String::new()
+                country: "".to_string(),
+                state: "".to_string(),
+                city: "".to_string()
             },
-            delivery_options: ()
+            //delivery_options: None,
         }
     }
 }

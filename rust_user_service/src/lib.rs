@@ -13,6 +13,9 @@ extern crate eventsourcing;
 #[macro_use]
 extern crate eventsourcing_derive;
 extern crate uuid;
+extern crate bytes;
+extern crate bincode;
+extern crate chrono;
 //#[macro_use]
 //extern crate tramp;
 

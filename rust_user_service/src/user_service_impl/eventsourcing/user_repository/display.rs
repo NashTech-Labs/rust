@@ -8,7 +8,10 @@ use crate::user_service_impl::env_setup::connection::CurrentSession;
 use crate::user_service_impl::models::get_user::UserMapper;
 use crate::user_service_impl::constants::queries::SELECT_ALL_QUERY;
 
+<<<<<<< HEAD
+=======
 /// select_user is used to retrieve a user detail based on user_id
+>>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
 pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
     let user_state_rows: Vec<Row> = session
         .query_with_values(SELECT_QUERY, query_values!(user_id))
@@ -26,7 +29,31 @@ pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper>
     result
 }
 
+<<<<<<< HEAD
+=======
+/*///tail recursive call for retrieving user from user_state
+fn convert(rows: Vec<Row>) -> Vec<GetUser> {
+    let index: i32 = 0;
+    let acc: RefCell<Vec<GetUser>> = RefCell::new(vec![]);
+    fn sub_convert(rows: Vec<Row>, acc: RefCell<Vec<GetUser>>, index: i32) -> Rec<Vec<GetUser>>
+    {
+        let r_size: usize = rows.len();
+        if r_size != 0 {
+            let get_user: GetUser = GetUser::try_from_row(rows[index]).expect("into get user");
+            acc.borrow_mut().push(get_user);
+            rec_call!(sub_convert(rows, acc,index+1))
+        } else {
+            rec_ret!(acc.borrow().to_vec())
+        }
+    }
+    tramp(sub_convert(rows, acc, index))
+}*/
+
+<<<<<<< HEAD
+=======
+>>>>>>> 7205a632f70e9e12bc5ef4ab5be05d0ee5be4c3f
 /// select_all_user is used to retrieve list of all users' details
+>>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
 pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {
     let user_state_rows: Vec<Row> = session
         .query(SELECT_ALL_QUERY)
@@ -42,13 +69,4 @@ pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {
     }
     let result: Vec<UserMapper> =get_user_list.borrow().to_vec();
     result
-}
-
-#[test]
-fn test_select_user(){
-   use crate::user_service_impl::env_setup::connection::connect;
-   assert_eq!(select_user(&connect(),
-                          "3275d519-28e5-5707-94a6-d16fac19835f".to_string()),
-"{'id':'3275d519-28e5-5707-94a6-d16fac19835f','user_state':{'user':{'id':'3275d519-28e5-5707-94a6-d16fac19835f',
-'name':'rohit','email':'rahul@gmail.com','password':'qwt'},'generation':'1'}}")
 }

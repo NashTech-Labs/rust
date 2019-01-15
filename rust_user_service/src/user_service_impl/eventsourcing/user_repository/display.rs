@@ -1,9 +1,7 @@
-//use core::borrow::BorrowMut;
 use std::cell::RefCell;
 
 use cdrs::{self, types::prelude::*};
 use cdrs::query::QueryExecutor;
-//use tramp::{Rec, tramp};
 
 use crate::user_service_impl::constants::queries::SELECT_QUERY;
 use crate::user_service_impl::env_setup::connection::CurrentSession;
@@ -22,7 +20,7 @@ pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper>
         .expect("get body")
         .into_rows()
         .expect("into rows");
-    //convert(user_state_rows)
+
     let get_user_list: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
     for row in user_state_rows {
         get_user_list.borrow_mut().push(UserMapper::try_from_row(row).expect("into get user"));
@@ -31,6 +29,8 @@ pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper>
     result
 }
 
+<<<<<<< HEAD
+=======
 /*///tail recursive call for retrieving user from user_state
 fn convert(rows: Vec<Row>) -> Vec<GetUser> {
     let index: i32 = 0;
@@ -51,6 +51,7 @@ fn convert(rows: Vec<Row>) -> Vec<GetUser> {
 
 <<<<<<< HEAD
 =======
+>>>>>>> 7205a632f70e9e12bc5ef4ab5be05d0ee5be4c3f
 /// select_all_user is used to retrieve list of all users' details
 >>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
 pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {

@@ -1,18 +1,10 @@
 use std::cell::RefCell;
 
-<<<<<<< HEAD
 use actix_web::*;
 use eventsourcing::Aggregate;
-use uuid::Uuid;
 use bytes::Bytes;
 use futures::stream::once;
-=======
-use actix_web::{Json,Result};
-use actix_web::Path;
-use actix_web::State;
-use eventsourcing::Aggregate;
 use uuid::Uuid;
->>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
 
 use crate::user_service_impl::constants::constant::TAKE_FIRST;
 use crate::user_service_impl::controller::error::CustomError;
@@ -31,10 +23,6 @@ use crate::user_service_impl::models::user_login::UserLogin;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::utilities::initial_state::initial_state;
 use crate::user_service_impl::utilities::mappers::map_user;
-use actix_web::HttpRequest;
-use actix_web::HttpResponse;
-use actix_web::Responder;
-use actix_web::Error;
 use crate::user_service_impl::utilities::wrapper::Outcomes;
 use crate::user_service_impl::utilities::wrapper::wrap_vec;
 

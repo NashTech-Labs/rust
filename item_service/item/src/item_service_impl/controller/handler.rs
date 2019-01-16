@@ -16,9 +16,8 @@ pub struct AppState {
 }
 
 pub fn create_item(req: &HttpRequest<AppState>) -> Result<Item,CustomError> {
+    unimplemented!();
 
-    let header = req.headers().get_all("");
-    let payload = Json::<ItemData>::extract(req);
 }
 
 pub fn get_item(data: State<AppState>,item_id:Path<i32>) -> Result<Item,CustomError> {

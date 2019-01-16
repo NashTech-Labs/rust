@@ -1,5 +1,5 @@
 [package]
-name = "item_service_impl"
+name = "item"
 version = "0.1.0"
 authors = ["amita <amita.yadav@knoldus.in>"]
 edition = "2018"

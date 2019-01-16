@@ -14,14 +14,6 @@ extern crate eventsourcing;
 extern crate eventsourcing_derive;
 extern crate uuid;
 
-pub mod env_setup;
+pub mod item_service_api;
 
-pub mod models;
-
-pub mod item_eventsourcing;
-
-pub mod controller;
-
-pub mod constants;
-
-pub mod utilities;
+pub mod item_service_impl;

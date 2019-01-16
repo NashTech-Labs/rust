@@ -15,4 +15,4 @@ serde_json = "1.0.33"
 
 actix ="0.7.9"
 actix-web = "0.7.17"
-item_service_impl = {path ="../item_service/item_service_impl"}
+item = {path ="../item_service/item"}

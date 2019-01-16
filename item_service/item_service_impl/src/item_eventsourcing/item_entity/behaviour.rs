@@ -15,7 +15,6 @@ impl Aggregate for PItem {
 
     /// apply_event takes events and state as input parameter and returns result of states
     fn apply_event(state: &Self::State, evt: Self::Event) -> Result<Self::State> {
-        let events = evt.to_owned();
         let item_state: PItemState = match evt {
             PItemEvent::ItemCreated{item} => PItemState {
                 item: Some(item),
@@ -97,6 +96,7 @@ impl Aggregate for PItem {
                 }),
                 generation: state.generation + 1,
             },
+            PItemEvent::ItemRetrieved => PItemState{ item: None, generation: 0 },
         };
         Ok(item_state)
     }

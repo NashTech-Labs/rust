@@ -14,7 +14,7 @@ pub fn create_table(session: &CurrentSession) -> &'static str {
 
 #[test]
 fn test_create_table() {
-    use crate::user_service_impl::env_setup::connection::connect;
+    use crate::env_setup::connection::connect;
     assert_eq!("Tables created successfully",
                create_table(&connect()));
 }

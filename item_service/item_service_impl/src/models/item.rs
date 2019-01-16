@@ -4,6 +4,7 @@ use crate::constants::constants::ZERO;
 use crate::models::item_data::ItemData;
 use crate::models::item_status::ItemStatus;
 use crate::models::location::Location;
+use crate::constants::constants::PRICE;
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Item {
@@ -37,7 +38,7 @@ impl Item {
             id,
             creator,
             item_data,
-            price: if price != ZERO { price } else { ZERO },
+            price: if price != PRICE { price } else { PRICE },
             status: item_status,
             auction_start,
             auction_end,

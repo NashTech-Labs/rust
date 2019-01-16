@@ -1,7 +1,6 @@
 extern crate actix_web;
 extern crate env_logger;
 extern crate listenfd;
-extern crate item_service_impl;
 
 use actix_web::{http, server, App};
 use listenfd::ListenFd;

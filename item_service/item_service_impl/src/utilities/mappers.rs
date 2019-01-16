@@ -11,7 +11,7 @@ pub fn pitem_to_item(item: PItem) -> Item {
     Item {
         id: item.id,
         creator: item.creator,
-        item_data: item_data,
+        item_data,
         price: item.price,
         status: item_status,
         auction_start: item.auction_start,

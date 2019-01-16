@@ -10,7 +10,7 @@ use eventsourcing::eventstore::MemoryEventStore;
 use user_service::user_service_impl::constants::constant::SERVER_BIND_PORT;
 use user_service::user_service_impl::env_setup::set_up::initializer;
 use user_service::user_service_impl::controller::handler::{
-    create_user,/* get_all_users, */get_user, user_login, AppState,
+    create_user, get_all_users, get_user, user_login, AppState,
 };
 use user_service::user_service_impl::env_setup::connection::connect;
 use user_service::user_service_impl::constants::constant::TAKE_FIRST;
@@ -34,14 +34,10 @@ fn main() {
             .resource("/get_user/{user_id}", |r| {
                 r.method(http::Method::GET).with(get_user)
             })
-<<<<<<< HEAD
-          /*  .resource("/get_user", |r| {
-=======
-            .resource("/get_users", |r| {
->>>>>>> 94334322fddb5eacaafb99cc2707c5f28874c647
-                r.method(http::Method::GET).f(get_all_users)
-            })*/
-    });
+          .resource("/get_users", |r| {
+              r.method(http::Method::GET).f(get_all_users)
+              })
+          });
     server = if let Some(l) = listenfd.take_tcp_listener(TAKE_FIRST).unwrap() {
         server.listen(l)
     } else {

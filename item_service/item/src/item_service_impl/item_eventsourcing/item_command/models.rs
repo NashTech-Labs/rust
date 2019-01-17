@@ -1,5 +1,5 @@
-use crate::models::p_item::PItem;
-use crate::models::item_data::PItemData;
+use crate::item_service_impl::models::p_item::PItem;
+use crate::item_service_impl::models::pitem_data::PItemData;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PItemCommand {

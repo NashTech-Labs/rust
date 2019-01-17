@@ -1,5 +1,5 @@
 use crate::item_service_api::item::Item;
-use crate::item_service_impl::models::item_status::ItemStatus;
+use crate::item_service_api::item_status::ItemStatus;
 
 pub enum ItemEvent {
     ItemUpdated { item_id: i32, creator: String, title: String, description: String, item_status:

@@ -1,29 +1,25 @@
-use crate::controller::error::CustomError;
-use crate::models::item::Item;
-use crate::models::item_data::{ItemData, PItemData};
-use crate::models::item_status::{ItemStatus, PItemStatus};
-use crate::models::location::Location;
-use crate::models::p_item::PItem;
+use crate::item_service_api::item_data::ItemData;
+use crate::item_service_api::item::Item;
+use crate::item_service_impl::models::p_item::PItem;
+use crate::item_service_api::item_status::ItemStatus;
+use crate::item_service_api::location::Location;
+use crate::item_service_impl::models::pitem_status::PItemStatus;
+use crate::item_service_impl::controller::error::CustomError;
+use crate::item_service_api::delivery_option::DeliveryOption;
+use crate::item_service_impl::models::pitem_data::PItemData;
 
 pub fn pitem_to_item(item: PItem) -> Item {
     let item_data: ItemData = pitemdata_to_itemdata(item.item_data);
     let item_status: ItemStatus = pitemstatus_to_itemstatus(item.status).unwrap();
-    Item {
-        id: item.id,
-        creator: item.creator,
-        item_data,
-        price: item.price,
-        status: item_status,
-        auction_start: item.auction_start,
-        auction_end: item.auction_end,
-        auction_winner: item.auction_winner,
-        location: Location {
-            country: "".to_string(),
-            state: "".to_string(),
-            city: "".to_string(),
-        },
-        /*delivery_options: D*/
-    }
+    Item::new(item.id,
+              item.creator,
+              item_data,
+              item.price,
+              item_status,
+              item.auction_start,
+              item.auction_end,
+              item.auction_winner,
+    )
 }
 
 pub fn pitemdata_to_itemdata(details: PItemData) -> ItemData {

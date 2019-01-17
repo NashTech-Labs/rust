@@ -2,7 +2,7 @@ use cdrs::authenticators::NoneAuthenticator;
 use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::cluster::session::{new as new_session, Session};
 use cdrs::load_balancing::RoundRobin;
-use crate::constants::constants::DATABASE_PORT_ADDRESS;
+use crate::item_service_impl::constants::constants::DATABASE_PORT_ADDRESS;
 
 ///creating a custom type of Current Session type
 pub type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;

@@ -2,13 +2,12 @@ use actix_web::Json;
 use actix_web::Path;
 use actix_web::State;
 use actix_web::FromRequest;
-use crate::controller::error::CustomError;
-use crate::models::item_data::ItemData;
-use crate::models::item::Item;
-use crate::models::item_summary::ItemSummary;
-use crate::item_eventsourcing::item_event::models::ItemEvent;
+use crate::item_service_impl::controller::error::CustomError;
 use actix_web::{HttpRequest,HttpResponse};
-use crate::env_setup::connection::CurrentSession;
+use crate::item_service_impl::env_setup::connection::CurrentSession;
+use crate::item_service_api::item::Item;
+use crate::item_service_api::item_summary::ItemSummary;
+use crate::item_service_api::item_data::ItemData;
 
 ///AppState is a struct with current session as field
 pub struct AppState {
@@ -24,7 +23,8 @@ pub fn get_item(data: State<AppState>,item_id:Path<i32>) -> Result<Item,CustomEr
     unimplemented!();
 }
 
-pub fn update_item(data: State<AppState>,item_id:Path<i32>,item_data: Json<ItemData>) -> Result<Item,CustomError> {
+pub fn update_item(data: State<AppState>,item_id:Path<i32>,item_data: Json<ItemData>)
+    -> Result<Item,CustomError> {
     unimplemented!();
 }
 

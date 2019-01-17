@@ -1,8 +1,6 @@
-extern  crate cdrs;
 use cdrs::types::prelude::*;
-
-use crate::models::item_data::{ItemData,PItemData};
-use crate::models::item_status::PItemStatus;
+use crate::item_service_impl::models::pitem_status::PItemStatus;
+use crate::item_service_impl::models::pitem_data::PItemData;
 
 #[derive(Clone, Debug, /*IntoCDRSValue, TryFromRow, */PartialEq, Serialize, Deserialize)]
 pub struct PItem {

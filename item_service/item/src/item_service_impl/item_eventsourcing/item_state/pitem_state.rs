@@ -1,13 +1,10 @@
-use crate::models::item_status::PItemStatus;
-use crate::models::p_item::PItem;
-use crate::models::p_item::*;
-use crate::models::item_data::PItemData;
 use std::time::Instant;
 use cdrs::frame::IntoBytes;
 use cdrs::frame::TryFromRow;
 use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::{self, types::prelude::*};
 use eventsourcing::AggregateState;
+use crate::item_service_impl::models::p_item::PItem;
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct PItemState {
@@ -16,7 +13,7 @@ pub struct PItemState {
 }
 
 impl PItemState {
-    fn new(pitem: Option<PItem>) -> PItemState {
+    pub fn new(pitem: Option<PItem>) -> PItemState {
         PItemState {
             item: pitem,
             generation: 0,

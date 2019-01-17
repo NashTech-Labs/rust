@@ -1,7 +1,6 @@
-use crate::models::item_status::ItemStatus;
-use crate::models::p_item::PItem;
-use crate::models::item_data::PItemData;
-use crate::models::item_status::PItemStatus;
+use crate::item_service_impl::models::p_item::PItem;
+use crate::item_service_impl::models::pitem_data::PItemData;
+use crate::item_service_impl::models::pitem_status::PItemStatus;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Event)]
 #[event_type_version("1.0")]

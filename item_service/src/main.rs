@@ -24,14 +24,14 @@ fn main() {
     env_logger::init();
     initializer(&connect());
 
-    let mut listenfd: ListenFd = ListenFd::from_env();
+   /* let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
             .middleware(middleware::DefaultHeaders::new().header("",""))
             .resource("/create_item", |r| {
                 r.method(http::Method::POST).f(create_item);
                 r.method(http::Method::HEAD).f(create_item);
-            })
+            })*/
             /*.resource("/start_auction", |r| r.method(http::Method::POST)
                 .with(start_auction))
             .resource("/get_item", |r| {
@@ -42,12 +42,12 @@ fn main() {
             }).resource("/get_user_items", |r| {
                 r.method(http::Method::GET).f(get_items_for_user)
             })*/
-    });
+    /*});
     server = if let Some(l) = listenfd.take_tcp_listener(ZERO).unwrap() {
         server.listen(l)
     } else {
         server.bind(SERVER_BIND_PORT).unwrap()
     };
 
-    server.run();
+    server.run();*/
 }

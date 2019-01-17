@@ -19,16 +19,16 @@ use item_service_impl::env_setup::connection::connect;
 use item_service_impl::controller::handler::AppState;
 use actix_web::middleware;
 use std::collections::HashMap;
+use std::cell::RefCell;
 
 fn main() {
     ::std::env::set_var(DEBUG_LEVEL_KEY, DEBUG_LEVEL_VALUE);
     env_logger::init();
     initializer(&connect());
-    let mut map = HashMap::new();
+    let map =  RefCell::new(HashMap::new());
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect(), hashmap: map })
-            .middleware(middleware::DefaultHeaders::new().header("",""))
            /* .resource("/create_item", |r| {
                 r.method(http::Method::POST).f(create_item);
                 r.method(http::Method::HEAD).f(create_item);
@@ -36,7 +36,7 @@ fn main() {
             /*.resource("/start_auction", |r| r.method(http::Method::POST)
                 .with(start_auction))*/
             .resource("/get_item", |r| {
-                r.method(http::Method::GET).with(get_item)
+                r.method(http::Method::GET).f(get_item)
             })/*
             .resource("/update_item", |r| {
                 r.method(http::Method::PUT).with(update_item)

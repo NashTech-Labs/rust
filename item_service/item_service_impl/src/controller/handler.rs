@@ -17,54 +17,41 @@ use std::time::Duration;
 use crate::models::item_status::PItemStatus;
 use crate::models::item_data::PItemData;
 use crate::constants::constants::ZERO;
+use actix_web::Responder;
+use std::rc::Rc;
+use std::cell::RefCell;
+
 ///AppState is a struct with current session as field
 pub struct AppState {
     pub session: CurrentSession,
-    pub hashmap: HashMap<String, String>,
+    pub hashmap: RefCell<HashMap<String, String>>,
 }
 
 pub fn create_item(req: &HttpRequest<AppState>) -> Result<Item, CustomError> {
     unimplemented!();
 }
 
-pub fn get_item(data: State<AppState>, item_id: Path<String>) -> Result<PItem, CustomError> {
-    let item_id: String = item_id.into_inner();
-    let item_map = data.hashmap.to_owned();
-    let item_mapper: Vec<ItemMapper> = select_item(&data.session, &item_id);
+pub fn get_item(req: &HttpRequest<AppState>) -> impl Responder {
+    let item_id = &req.query().get("id").unwrap().parse().unwrap();
+    let item_map:&RefCell<HashMap<String,String>> =  &req.state().hashmap;
+    let item_mapper: Vec<ItemMapper> = select_item(&req.state().session, item_id);
     // if item mapper len is greater that zero than item state exist
     if (item_mapper.len() == ZERO) {
-        let item_state_in_cache:Option<&String> = item_map.get(&item_id);
+        let item_state_in_cache:Option<&String> = item_map.get_mut().get(item_id);
         let item_not_exist = &"Not exist in cache".to_string();
-        let state: &String = match item_state_in_cache {
+        let state: &String = match item_state_in_cache.to_owned() {
             Some(state) => state,
             None => item_not_exist,
         };
         if (state == &"Not exist in cache".to_string()) {
-            Err(CustomError::InvalidInput { field: "User not exist with this id" })
+           "User not exist with this id".to_string()
         }
         else { let pitem_state:PItem = serde_json::from_str(state).unwrap();
-            Ok(pitem_state) }
+            state.to_string() }
 
     }
     else {
-        Ok(PItem{
-            id: 0,
-            creator: "".to_string(),
-            item_data: PItemData {
-                title: "".to_string(),
-                description: "".to_string(),
-                currency_id: "".to_string(),
-                increment: 0.0,
-                reserve_price: 0.0,
-                auction_duration: Duration::new(5,85),
-                category_id: None
-            },
-            price: 0.0,
-            status: PItemStatus::CREATED,
-            auction_start: None,
-            auction_end: None,
-            auction_winner: None,
-        })
+        "".to_string()
     }
 }
 

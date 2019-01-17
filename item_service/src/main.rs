@@ -5,21 +5,17 @@ extern crate listenfd;
 use actix_web::{http, server, App};
 use listenfd::ListenFd;
 
-use item_service_impl::constants::constants::DEBUG_LEVEL_KEY;
-use item_service_impl::constants::constants::DEBUG_LEVEL_VALUE;
-use item_service_impl::constants::constants::SERVER_BIND_PORT;
-use item_service_impl::constants::constants::ZERO;
-use item_service_impl::controller::handler::create_item;
-use item_service_impl::controller::handler::start_auction;
-use item_service_impl::controller::handler::get_item;
-use item_service_impl::controller::handler::update_item;
-use item_service_impl::controller::handler::get_items_for_user;
-use item_service_impl::env_setup::set_up::initializer;
-use item_service_impl::env_setup::connection::connect;
-use item_service_impl::controller::handler::AppState;
 use actix_web::middleware;
 use std::collections::HashMap;
 use std::cell::RefCell;
+use item::item_service_impl::constants::constants::DEBUG_LEVEL_KEY;
+use item::item_service_impl::constants::constants::DEBUG_LEVEL_VALUE;
+use item::item_service_impl::env_setup::set_up::initializer;
+use item::item_service_impl::env_setup::connection::connect;
+use item::item_service_api::item_service::AppState;
+use item::item_service_api::item_service::get_item;
+use item::item_service_impl::constants::constants::ZERO;
+use item::item_service_impl::constants::constants::SERVER_BIND_PORT;
 
 fn main() {
     ::std::env::set_var(DEBUG_LEVEL_KEY, DEBUG_LEVEL_VALUE);

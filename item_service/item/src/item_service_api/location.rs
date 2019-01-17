@@ -1,6 +1,6 @@
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Location {
-    pub country: String,
-    pub state: String,
-    pub city: String,
+    pub country: Option<String>,
+    pub state: Option<String>,
+    pub city: Option<String>,
 }

@@ -3,11 +3,6 @@ use crate::models::p_item::PItem;
 use crate::models::item_data::PItemData;
 use crate::models::item_status::PItemStatus;
 
-pub enum ItemEvent {
-    ItemUpdated { item_id: i32, creator: String, title: String, description: String, item_status: ItemStatus, currency_id: String },
-    AuctionStarted { item_id: i32, creator: String, reserve_price: f32, increment: f32, start_date: String, end_date: String },
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, Event)]
 #[event_type_version("1.0")]
 #[event_source("")]

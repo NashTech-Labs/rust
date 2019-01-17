@@ -1,12 +1,5 @@
 use crate::controller::error::CustomError;
 
-#[derive(Debug,Clone,PartialEq,Serialize, Deserialize)]
-pub enum ItemStatus {
-    CREATED,
-    AUCTION,
-    COMPLETED,
-    CANCELLED,
-}
 
 #[derive(Debug,Clone,PartialEq,Serialize, Deserialize)]
 pub enum PItemStatus {

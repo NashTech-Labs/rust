@@ -15,12 +15,13 @@ use crate::item_service_impl::constants::constants::ZERO;
 use crate::item_service_impl::models::p_item::PItem;
 use crate::item_service_api::item_data::ItemData;
 use crate::item_service_api::item_summary::ItemSummary;
-
+use crate::
 ///AppState is a struct with current session as field
 pub struct AppState {
     pub session: CurrentSession,
-    pub hashmap: RefCell<HashMap<String, String>>,
 }
+
+
 
 pub fn create_item(req: &HttpRequest<AppState>) -> Result<Item,CustomError> {
 unimplemented!()

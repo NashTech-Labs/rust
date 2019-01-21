@@ -21,10 +21,10 @@ fn main() {
     ::std::env::set_var(DEBUG_LEVEL_KEY, DEBUG_LEVEL_VALUE);
     env_logger::init();
     initializer(&connect());
-    let map =  RefCell::new(HashMap::new());
+    static mut map:RefCell<HashMap<String,String>> = RefCell::new(HashMap::new());
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
-        App::with_state(AppState { session: connect(), hashmap: map })
+        App::with_state(AppState { session: connect() })
            /* .resource("/create_item", |r| {
                 r.method(http::Method::POST).f(create_item);
                 r.method(http::Method::HEAD).f(create_item);

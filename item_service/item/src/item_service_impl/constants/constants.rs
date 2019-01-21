@@ -11,3 +11,5 @@ pub const DEBUG_LEVEL_KEY: &str = "RUST_LOG";
 pub const DEBUG_LEVEL_VALUE: &str = "actix_web=debug";
 
 pub const TOPIC_ID: &str = "item-ItemEvent";
+
+pub static mut abc: RefCell<Vec<i32>> = RefCell::new(Vec::new());

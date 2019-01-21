@@ -19,19 +19,13 @@ impl PItemState {
             generation: 0,
         }
     }
-}
 
-impl AggregateState for PItemState {
-    fn generation(&self) -> u64 {
-        self.generation
-    }
-}
-    /*pub fn empty() -> PItemState {
-        PItemState { item: None }
+    pub fn empty() -> PItemState {
+        PItemState { item: None, generation: 0 }
     }
 
     pub fn create(item: PItem) -> PItemState {
-        PItemState { item: Some(item) }
+        PItemState { item: Some(item), generation: 0 }
     }
 
     pub fn start(start_time: Instant) -> PItemState {
@@ -56,12 +50,17 @@ impl AggregateState for PItemState {
 
     pub fn get_status(item: PItem) -> PItemStatus {
         if (item.status != PItemStatus::NOT_CREATED)
-        { item.status } else { PItemStatus::NOT_CREATED }
+            { item.status } else { PItemStatus::NOT_CREATED }
     }
 
-    *//*fn update(pitem: PItem) -> PItem {
-        unimplemented!()
-    }*//*
+    fn update<F>(&self,f:F) -> PItem where F:Fn(PItem) -> PItem {
+    /*unimplemented!()*/
+
+    }
 }
 
-*/
+impl AggregateState for PItemState {
+    fn generation(&self) -> u64 {
+        self.generation
+    }
+}

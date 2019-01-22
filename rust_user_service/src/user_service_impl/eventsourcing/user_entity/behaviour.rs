@@ -5,12 +5,14 @@ use crate::user_service_impl::eventsourcing::user_state::models::UserState;
 use crate::user_service_impl::models::p_user::PUser;
 use eventsourcing::{Result,Aggregate};
 
+#[cfg_attr(tarpaulin, skip)]
 impl Aggregate for PUser {
     type Event = UserEvent;
     type Command = UserCommand;
     type State = UserState;
 
     /// apply_event takes events and state as input parameter and returns result of states
+    #[cfg_attr(tarpaulin, skip)]
     fn apply_event(state: &Self::State, evt: Self::Event) -> Result<Self::State> {
         let user_state: UserState = match evt {
             UserEvent::UserCreated(puser) => UserState {
@@ -23,6 +25,7 @@ impl Aggregate for PUser {
 
     /// handle_command takes command and state as input parameter and
     /// returns result of vector of events
+    #[cfg_attr(tarpaulin, skip)]
     fn handle_command(_state: &Self::State, cmd: Self::Command) -> Result<Vec<Self::Event>> {
         let user_event: UserEvent = match cmd {
             UserCommand::CreateUser(new_user) => UserEvent::UserCreated(PUser {

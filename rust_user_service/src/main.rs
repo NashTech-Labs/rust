@@ -17,6 +17,7 @@ use user_service::user_service_impl::constants::constant::TAKE_FIRST;
 use user_service::user_service_impl::constants::constant::DEBUG_LEVEL_KEY;
 use user_service::user_service_impl::constants::constant::DEBUG_LEVEL_VALUE;
 
+#[cfg_attr(tarpaulin, skip)]
 fn main() {
     let _user_store: MemoryEventStore = MemoryEventStore::new();
     ::std::env::set_var(DEBUG_LEVEL_KEY, DEBUG_LEVEL_VALUE);

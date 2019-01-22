@@ -11,6 +11,7 @@ pub enum CustomError {
 }
 
 impl error::ResponseError for CustomError {
+    #[cfg_attr(tarpaulin, skip)]
     fn error_response(&self) -> HttpResponse {
         match *self {
             CustomError::InternalError { .. } => HttpResponse::new(

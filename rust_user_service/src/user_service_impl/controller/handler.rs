@@ -21,8 +21,8 @@ use crate::user_service_impl::models::user_login::UserLogin;
 use crate::user_service_impl::models::user_registration::UserRegistration;
 use crate::user_service_impl::utilities::initial_state::initial_state;
 use crate::user_service_impl::utilities::mappers::map_user;
-use crate::user_service_impl::utilities::wrapper::Outcomes;
 use crate::user_service_impl::utilities::wrapper::wrap_vec;
+use crate::user_service_impl::utilities::wrapper::Outcomes;
 
 ///AppState is a struct with current session as field
 pub struct AppState {
@@ -33,24 +33,28 @@ pub struct AppState {
 /// returns Result<Json<User>> in case of success and in case of failure,
 /// it will return CustomError
 /// create _user is used to storing the user details
-pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
-                   -> Result<Json<User>, CustomError> {
+pub fn create_user(
+    data: State<AppState>,
+    user_reg: Json<UserRegistration>,
+) -> Result<Json<User>, CustomError> {
     let new_user: UserRegistration = user_reg.into_inner();
     let new_user_id: String = get_id_by_email(&new_user.email).to_string();
     if is_present(&data.session, new_user_id.clone()) {
         let initial_user_state: UserState = initial_state();
         let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
         let user_events: Vec<UserEvent> =
-            PUser::handle_command(&initial_user_state, create_user_command)
-                .unwrap();
+            PUser::handle_command(&initial_user_state, create_user_command).unwrap();
         let user_state: UserState =
-            PUser::apply_event(&initial_user_state, user_events[TAKE_FIRST]
-                .clone()).unwrap();
-        match event_persistent(&data.session, &user_events[TAKE_FIRST],
-                               new_user_id, &user_state) {
+            PUser::apply_event(&initial_user_state, user_events[TAKE_FIRST].clone()).unwrap();
+        match event_persistent(
+            &data.session,
+            &user_events[TAKE_FIRST],
+            new_user_id,
+            &user_state,
+        ) {
             Ok(_) => Ok(Json(map_user(user_state.user))),
             Err(_) => Err(CustomError::InvalidInput {
-                field: "Internal Server Error"
+                field: "Internal Server Error",
             }),
         }
     } else {
@@ -64,14 +68,14 @@ pub fn create_user(data: State<AppState>, user_reg: Json<UserRegistration>)
 /// returns Result<Json<User>> in case of success and in case of failure,
 /// it will return CustomError
 /// get_user is used to retrieve the user's details based on his/her user_id
-pub fn get_user(data: State<AppState>, user_id: Path<String>)
-                -> Result<Json<User>, CustomError> {
+pub fn get_user(data: State<AppState>, user_id: Path<String>) -> Result<Json<User>, CustomError> {
     let result: Vec<UserMapper> = select_user(&data.session, user_id.into_inner());
     if result.is_empty() {
-        Err(CustomError::InvalidInput { field: "user with this id doesn't exist" })
+        Err(CustomError::InvalidInput {
+            field: "user with this id doesn't exist",
+        })
     } else {
-        let user_state: UserState = serde_json::
-        from_str(&result[TAKE_FIRST].user_state).unwrap();
+        let user_state: UserState = serde_json::from_str(&result[TAKE_FIRST].user_state).unwrap();
         Ok(Json(map_user(user_state.user)))
     }
 }
@@ -98,7 +102,9 @@ pub fn get_all_users(req: &HttpRequest<AppState>) -> impl Responder {
     let user_mapper: Vec<UserMapper> = select_all_user(&req.state().session);
     let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
     if user_mapper.is_empty() {
-        Err(CustomError::InternalError { field: "error in getting all users" })
+        Err(CustomError::InternalError {
+            field: "error in getting all users",
+        })
     } else {
         for user in user_mapper {
             let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
@@ -111,27 +117,29 @@ pub fn get_all_users(req: &HttpRequest<AppState>) -> impl Responder {
 }
 
 ///this method is used to authenticate the user so that he can get his id
-pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>)
-                  -> Result<String, CustomError> {
+pub fn user_login(
+    data: State<AppState>,
+    user_login: Json<UserLogin>,
+) -> Result<String, CustomError> {
     let u_login: UserLogin = user_login.into_inner();
     let user_email: String = u_login.email;
     let user_id: Uuid = get_id_by_email(&user_email);
-    let user_status: Vec<UserMapper> = select_user(&data.session,
-                                                   user_id.clone().to_string());
-    let user_id: String= get_id_by_email(&user_email).to_string();
-    let user_status: Vec<UserMapper> = select_user(&data.session,
-                                                   user_id.clone());
+    let user_status: Vec<UserMapper> = select_user(&data.session, user_id.clone().to_string());
+    let user_id: String = get_id_by_email(&user_email).to_string();
+    let user_status: Vec<UserMapper> = select_user(&data.session, user_id.clone());
     if user_status.is_empty() {
-        Err(CustomError::InvalidInput { field: "user not found" })
+        Err(CustomError::InvalidInput {
+            field: "user not found",
+        })
     } else {
-        let user_state: UserState = serde_json::
-        from_str(&user_status[TAKE_FIRST].user_state).unwrap();
+        let user_state: UserState =
+            serde_json::from_str(&user_status[TAKE_FIRST].user_state).unwrap();
         let user_password: String = user_state.user.password;
         if user_password == u_login.password {
             Ok(user_id)
         } else {
             Err(CustomError::InvalidInput {
-                field: "username and password doesn't matched"
+                field: "username and password doesn't matched",
             })
         }
     }
@@ -139,7 +147,6 @@ pub fn user_login(data: State<AppState>, user_login: Json<UserLogin>)
 
 /// this method is used to retrieve the id from email
 pub fn get_id_by_email(user_email: &String) -> Uuid {
-    let user_id: Uuid = Uuid::
-    new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
+    let user_id: Uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
     user_id
 }

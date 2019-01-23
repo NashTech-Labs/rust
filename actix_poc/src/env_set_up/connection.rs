@@ -1,14 +1,17 @@
 use cdrs::authenticators::NoneAuthenticator;
-use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::cluster::session::{new as new_session, Session};
+use cdrs::cluster::NodeTcpConfig;
+use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
+use constants::constant::DATABASE_PORT_ADDRESS;
 
 pub type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;
 
 pub fn connect() -> CurrentSession {
-    let node = NodeTcpConfigBuilder::new("127.0.0.1:9042", NoneAuthenticator {}).build();
+    let node: NodeTcpConfig<NoneAuthenticator> =
+        NodeTcpConfigBuilder::new(DATABASE_PORT_ADDRESS, NoneAuthenticator {}).build();
     let cluster_config = ClusterTcpConfig(vec![node]);
-    let no_compression: CurrentSession = new_session(&cluster_config, RoundRobin::new())
-        .expect("session should be created");
+    let no_compression: CurrentSession =
+        new_session(&cluster_config, RoundRobin::new()).expect("session should be created");
     no_compression
 }

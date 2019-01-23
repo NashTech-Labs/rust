@@ -138,7 +138,7 @@ fn test_user_login_not_exist() {
 #[test]
 fn test_display_all_users() {
     let mut server = test::TestServer::with_factory(create_app);
-    let request = match server.client(http::Method::GET, "/get_users").finish().unwrap();
+    let request =  server.client(http::Method::GET, "/get_users").finish().unwrap();
 
     let response: ClientResponse = server.execute(request.send()).unwrap();
    // assert!(response.status().is_success());

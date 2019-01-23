@@ -1,24 +1,22 @@
-extern crate actix_web;
-extern crate env_logger;
-extern crate listenfd;
-extern crate user_service;
+extern crate user;
 
 use actix_web::{http, server, App};
 use listenfd::ListenFd;
 
-use eventsourcing::eventstore::MemoryEventStore;
-use user_service::user_service_impl::constants::constant::SERVER_BIND_PORT;
-use user_service::user_service_impl::env_setup::set_up::initializer;
-use user_service::user_service_impl::controller::handler::{
-    create_user, get_all_users, get_user, user_login, AppState,
-};
-use user_service::user_service_impl::env_setup::connection::connect;
-use user_service::user_service_impl::constants::constant::TAKE_FIRST;
-use user_service::user_service_impl::constants::constant::DEBUG_LEVEL_KEY;
-use user_service::user_service_impl::constants::constant::DEBUG_LEVEL_VALUE;
+use user::user_service_impl::constants::constant::DEBUG_LEVEL_KEY;
+use user::user_service_impl::constants::constant::DEBUG_LEVEL_VALUE;
+use user::user_service_impl::env_setup::set_up::initializer;
+use user::user_service_impl::env_setup::connection::connect;
+use user::user_service_api::user_service::handler::AppState;
+use user::user_service_api::user_service::handler::create_user;
+use user::user_service_api::user_service::handler::user_login;
+use user::user_service_api::user_service::handler::get_user;
+use user::user_service_api::user_service::handler::get_all_users;
+use user::user_service_impl::constants::constant::INDEX;
+use user::user_service_impl::constants::constant::SERVER_BIND_PORT;
 
+#[cfg_attr(tarpaulin,skip)]
 fn main() {
-    let _user_store: MemoryEventStore = MemoryEventStore::new();
     ::std::env::set_var(DEBUG_LEVEL_KEY, DEBUG_LEVEL_VALUE);
     env_logger::init();
     initializer(&connect());
@@ -38,8 +36,8 @@ fn main() {
               r.method(http::Method::GET).f(get_all_users)
               })
           });
-    server = if let Some(l) = listenfd.take_tcp_listener(TAKE_FIRST).unwrap() {
-        server.listen(l)
+    server = if let Some(listen) = listenfd.take_tcp_listener(INDEX).unwrap() {
+        server.listen(listen)
     } else {
         server.bind(SERVER_BIND_PORT).unwrap()
     };

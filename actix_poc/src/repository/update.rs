@@ -8,7 +8,7 @@ use repository::is_present::is_present;
 /// this function is used to update student detail of particular id
 pub fn update_student(
     session: &CurrentSession,
-    new_student: &Json<Student>,
+    student_details: &Json<Student>,
     path: i32,
 ) -> Result<&'static str> {
     if is_present(&session, path.to_owned()) {
@@ -16,8 +16,8 @@ pub fn update_student(
     } else {
         let student: Student = Student {
             roll_no: path,
-            marks: new_student.marks,
-            name: new_student.name.clone(),
+            marks: student_details.marks,
+            name: student_details.name.clone(),
         };
         session
             .query_with_values(

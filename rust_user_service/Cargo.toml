@@ -5,11 +5,23 @@ authors = ["rsb007 <rahul.sing@knoldus.in>"]
 edition = "2018"
 
 [dependencies]
+cdrs = "2.0.0-beta.4"
+cdrs_helpers_derive = "0.2.0"
+
 listenfd = "0.3"
+failure = "0.1.2"
 env_logger = "0.5.12"
+
+eventsourcing-derive = "0.1.1"
+eventsourcing = "0.1.1"
+
+serde ="1.0.82"
+serde_derive = "1.0.82"
+serde_json = "1.0.33"
 
 actix ="0.7.9"
 actix-web = "0.7.17"
-serde_json = "1.0.33"
 
-user = {path ="../rust_user_service/user"}
+uuid = { version = "0.7", features = ["v5"] }
+tramp = "0.3.0"
+futures = "*"

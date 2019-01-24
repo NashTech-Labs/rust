@@ -2,6 +2,8 @@ use cdrs::query::QueryExecutor;
 use constants::queries::SELECT_QUERY;
 use env_set_up::connection::CurrentSession;
 
+
+/// this function is used to check that the particular id exist in database or not
 pub fn is_present(session: &CurrentSession, roll_no: i32) -> bool {
     session
         .query_with_values(SELECT_QUERY, query_values!(roll_no))

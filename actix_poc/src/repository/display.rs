@@ -7,6 +7,7 @@ use env_set_up::connection::CurrentSession;
 use models::model::Student;
 use std::cell::RefCell;
 
+/// this function is used to display student details from database
 pub fn select_student(session: &CurrentSession, student: Path<i32>) -> Option<Student> {
     let roll_no: i32 = student.into_inner();
 

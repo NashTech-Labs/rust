@@ -3,6 +3,7 @@ use cdrs::cluster::session::{new as new_session, Session};
 use cdrs::cluster::NodeTcpConfig;
 use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfigBuilder, TcpConnectionPool};
 use cdrs::load_balancing::RoundRobin;
+
 use constants::constant::DATABASE_PORT_ADDRESS;
 
 pub type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;

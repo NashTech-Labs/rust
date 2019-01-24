@@ -15,6 +15,7 @@ use scylladb_poc::constants::constant::DEBUG_LEVEL_VALUE;
 use scylladb_poc::constants::constant::DEBUG_LEVEL_KEY;
 use scylladb_poc::env_set_up::set_up::initializer;
 use scylladb_poc::controller::handler::AppState;
+use scylladb_poc::constants::constant::ZERO;
 
 #[cfg_attr(tarpaulin, skip)]
 fn main() {
@@ -36,8 +37,8 @@ fn main() {
                 r.method(http::Method::PUT).with(update)
             })
     });
-    server = if let Some(l) = listenfd.take_tcp_listener(0).unwrap() {
-        server.listen(l)
+    server = if let Some(listen) = listenfd.take_tcp_listener(ZERO).unwrap() {
+        server.listen(listen)
     } else {
         server.bind(SERVER_BIND_PORT).unwrap()
     };

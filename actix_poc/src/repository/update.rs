@@ -4,6 +4,8 @@ use constants::queries::UPDATE_QUERY;
 use env_set_up::connection::CurrentSession;
 use models::model::Student;
 use repository::is_present::is_present;
+
+/// this function is used to update student detail of particular id
 pub fn update_student(
     session: &CurrentSession,
     new_student: &Json<Student>,

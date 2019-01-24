@@ -1,6 +1,7 @@
 use actix_web::{error, http, HttpResponse};
 
-#[derive(Fail, Debug)]
+/// this enum is used to handle custom error with message field
+#[derive(Fail, PartialEq, Debug)]
 pub enum CustomError {
     #[fail(display = "internal error")]
     InternalError,
@@ -10,7 +11,6 @@ pub enum CustomError {
     Timeout,
 }
 
-#[cfg_attr(tarpaulin, skip)]
 impl error::ResponseError for CustomError {
     fn error_response(&self) -> HttpResponse {
         match *self {
@@ -21,4 +21,12 @@ impl error::ResponseError for CustomError {
             CustomError::Timeout => HttpResponse::new(http::StatusCode::GATEWAY_TIMEOUT),
         }
     }
+}
+
+#[test]
+fn test_error_impl() {
+    assert_eq!(
+        CustomError::Timeout,
+        HttpResponse::new(http::StatusCode::GATEWAY_TIMEOUT)
+    );
 }

@@ -1,0 +1,15 @@
+[package]
+name = "user_service"
+version = "0.1.0"
+authors = ["rsb007 <rahul.sing@knoldus.in>"]
+edition = "2018"
+
+[dependencies]
+listenfd = "0.3"
+env_logger = "0.5.12"
+
+actix ="0.7.9"
+actix-web = "0.7.17"
+serde_json = "1.0.33"
+
+user = {path ="../rust_user_service/user"}

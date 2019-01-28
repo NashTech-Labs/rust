@@ -1,0 +1,13 @@
+[package]
+name = "hawk"
+version ="0.1.0"
+authors = ["rsb007 rahul.sing@knoldus.in"]
+edition = "2018"
+
+
+[dependencies]
+rust-s3 = "0.11.0"
+openssl = { version = "0.10", features = ["vendored"] }
+env_logger = "0.6.0"
+log = "0.4.6"
+colored = "1.7"

@@ -10,28 +10,12 @@ extern crate serde_json;
 #[macro_use]
 extern crate failure;
 
-pub mod env_set_up {
-    pub mod connection;
-    pub mod keyspace;
-    pub mod table;
-}
+pub mod env_set_up;
 
-pub mod crud {
-    pub mod insert;
-    pub mod delete;
-    pub mod update;
-    pub mod display;
-    pub mod is_present;
-}
+pub mod repository;
 
-pub mod models {
-    pub mod model;
-}
+pub mod models;
 
-pub mod error;
-
-pub mod handlers{
-    pub mod handler;
-}
+pub mod controller;
 
 pub mod constants;

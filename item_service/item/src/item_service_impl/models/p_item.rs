@@ -2,14 +2,14 @@ use cdrs::types::prelude::*;
 use crate::item_service_impl::models::pitem_status::PItemStatus;
 use crate::item_service_impl::models::pitem_data::PItemData;
 
-#[derive(Clone, Debug, /*IntoCDRSValue, TryFromRow, */PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, IntoCDRSValue, TryFromRow, PartialEq, Serialize, Deserialize)]
 pub struct PItem {
    //it should be private
-    pub id: i32,
-    pub creator: String,
-    pub item_data: PItemData,
-    pub price: f32,
-    pub status: PItemStatus,
+    id: i32,
+    creator: String,
+    item_data: PItemData,
+    price: f32,
+    status: PItemStatus,
     //ends here
     pub auction_start: Option<String>,
     pub auction_end: Option<String>,
@@ -51,12 +51,12 @@ impl PItem {
             auction_winner: None,
         }
     }
-}
-   /* pub fn start(start_time: String) -> PItem {
+
+    fn start(&mut self,start_time: String) -> PItem {
         assert_eq!(status, PItemStatus::CREATED);
         PItem {
-            id,
-            creator,
+            id: self.id,
+            creator: self.created,
             item_data,
             price,
             status: PItemStatus::AUCTION,
@@ -92,7 +92,7 @@ impl PItem {
             auction_winner
         }
     }
-    pub fn cancel() -> PItem {
+    pub fn cancel(&self) -> PItem {
         assert_eq!(status, PItemStatus::AUCTION) || assert_eq!(status, PItemStatus::CREATED);
         PItem {
             id,
@@ -130,4 +130,3 @@ impl PItem {
         }
     }
 }
-*/

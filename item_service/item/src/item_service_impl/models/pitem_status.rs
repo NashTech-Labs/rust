@@ -11,7 +11,7 @@ pub enum PItemStatus {
 }
 
 impl PItemStatus {
-    fn toitemstatus(&self) -> Result<ItemStatus,CustomError> {
+    pub fn toitemstatus(&self) -> Result<ItemStatus,CustomError> {
         match  &self {
             PItemStatus::NOT_CREATED => Err(CustomError::InternalError {field:
             "Publically exposed Item cant't be created"}),

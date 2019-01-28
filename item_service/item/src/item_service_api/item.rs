@@ -41,7 +41,7 @@ impl Item {
                 state: None,
                 city: None,
             },
-            delivery_options: DeliveryOption::Null,
+            delivery_options: DeliveryOption::NoDelivery,
         }
     }
 }

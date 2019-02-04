@@ -12,4 +12,4 @@ actix ="0.7.9"
 actix-web = "0.7.17"
 serde_json = "1.0.33"
 
-user = {path ="../rust_user_service/user"}
+user = {path ="../user_service/user"}

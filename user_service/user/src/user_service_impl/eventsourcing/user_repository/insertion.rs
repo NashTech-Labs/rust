@@ -11,7 +11,6 @@ use crate::user_service_impl::controller::error::CustomError;
 use crate::user_service_impl::env_setup::connection::CurrentSession;
 use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
 use crate::user_service_impl::eventsourcing::user_state::models::UserState;
-use crate::user_service_impl::env_setup::connection::connect;
 
 /// event_persistent is used to store the events against a particular user
 pub fn event_persistent(
@@ -58,6 +57,7 @@ fn state_persistent<'a, 'b>(
 
 #[test]
 fn test_state_persistent() {
+    use crate::user_service_impl::env_setup::connection::connect;
     let user_state: UserState = UserState{ user: puser, generation: 1 };
     assert_eq!(state_persistent(&connect(),&user_state,"f95dfd0b-e2fa-5b88-a284-578f9a015f4d"
         .to_string()),Ok("successfully state stored"))

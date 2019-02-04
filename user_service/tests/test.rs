@@ -28,6 +28,9 @@ use user::user_service_impl::eventsourcing::user_state::models::UserState;
 use user::user_service_impl::utilities::mappers::map_user;
 use user::user_service_impl::eventsourcing::user_event::models::UserEvent;
 
+fn set_up_db() {
+    let session = connect();
+}
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
     App::with_state(AppState { session: connect() })
@@ -53,8 +56,8 @@ fn test_initializer() {
 
 #[test]
 fn test_get_id_by_email() {
-    assert_eq!(get_id_by_email("rahul@gmail.com").to_string(),
-               "3275d519-28e5-5707-94a6-d16fac19835f".to_string())
+    assert_eq!(get_id_by_email("sid@gmail.com").to_string(),
+               "a9c8536e-75ee-582b-a145-b6ace45abe9d".to_string())
 }
 
 #[test]
@@ -105,9 +108,9 @@ fn test_map_user() {
 #[test]
 fn test_insert_first_time() {
     let user_reg: UserRegistration = UserRegistration {
-        name: "anisha".to_string(),
-        email: "amitay@knoldus.in".to_string(),
-        password: "anisha123".to_string(),
+        name: "sid".to_string(),
+        email: "sid@gmail.com".to_string(),
+        password: "sid123@".to_string(),
     };
     let mut server: TestServer = test::TestServer::with_factory(create_app);
     let request: ClientRequest = server.client(http::Method::POST,
@@ -118,8 +121,8 @@ fn test_insert_first_time() {
     let user_detail_in_bytes = server.execute(response.body()).unwrap();
     let parsed_user_detail = str::from_utf8(&user_detail_in_bytes).unwrap();
     let user_detail: Value = serde_json::from_str(parsed_user_detail).unwrap();
-    assert_eq!(user_detail, json!({"email": "amita@knoldus.in", "id":
-     "8eea6a91-2c44-5dfd-b889-39992ab8d510", "name" : "anisha"}));
+    assert_eq!(user_detail, json!({"email": "sid@gmail.com", "id":
+     "a9c8536e-75ee-582b-a145-b6ace45abe9d", "name" : "sid"}));
 }
 
 #[test]

@@ -28,6 +28,9 @@ use user::user_service_impl::eventsourcing::user_state::models::UserState;
 use user::user_service_impl::utilities::mappers::map_user;
 use user::user_service_impl::eventsourcing::user_event::models::UserEvent;
 
+fn set_up_db() {
+    let session = connect();
+}
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
     App::with_state(AppState { session: connect() })

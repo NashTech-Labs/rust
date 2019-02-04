@@ -1,31 +1,28 @@
 use std::cell::RefCell;
-
 use actix_web::*;
 use eventsourcing::Aggregate;
 use uuid::Uuid;
-
-use crate::user_service_impl::constants::constant::INDEX;
-use crate::user_service_impl::controller::error::CustomError;
-use crate::user_service_impl::env_setup::connection::CurrentSession;
-use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
-use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
-use crate::user_service_impl::eventsourcing::user_repository::display::select_all_user;
-use crate::user_service_impl::eventsourcing::user_repository::display::select_user;
-use crate::user_service_impl::eventsourcing::user_repository::insertion::event_persistent;
-use crate::user_service_impl::eventsourcing::user_repository::is_present::is_present;
-use crate::user_service_impl::eventsourcing::user_state::models::UserState;
-use crate::user_service_impl::models::get_user::UserMapper;
-use crate::user_service_impl::models::p_user::PUser;
-use crate::user_service_impl::utilities::initial_state::initial_state;
-use crate::user_service_impl::utilities::mappers::map_user;
-use crate::user_service_impl::utilities::wrapper::Outcomes;
-use crate::user_service_impl::utilities::wrapper::wrap_vec;
-use crate::user_service_api::models::user::User;
-use crate::user_service_api::models::user_registration::UserRegistration;
-use crate::user_service_api::models::user_login::UserLogin;
 use futures::Future;
 use futures::future::result;
+use crate::user_service_impl::eventsourcing::user_entity::PUser;
+use crate::model::User;
+use crate::error::CustomError;
+use crate::user_service_impl::eventsourcing::user_state::UserState;
+use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
+use crate::model::UserLogin;
+use crate::user_service_impl::eventsourcing::user_repository::select_user;
+use crate::user_service_impl::eventsourcing::user_repository::select_all_user;
+use crate::model::UserRegistration;
+use crate::user_service_impl::env_setup::CurrentSession;
+use crate::user_service_impl::eventsourcing::user_command::UserCommand;
+use crate::user_service_impl::eventsourcing::user_repository::is_present;
+use crate::user_service_impl::eventsourcing::user_entity::initial_state;
+use crate::user_service_impl::eventsourcing::user_event::UserEvent;
+use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
+use crate::wrapper::wrap_vec;
+use crate::wrapper::Outcomes;
 
+pub static INDEX: usize = 0;
 
 ///AppState is a struct with current session as field
 pub struct AppState {
@@ -127,4 +124,13 @@ pub fn get_id_by_email(user_email: &str) -> Uuid {
     let user_id: Uuid = Uuid::
     new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
     user_id
+}
+
+/// map_user is used to map PUser into User
+pub fn map_user(user: PUser) -> User {
+    User {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+    }
 }

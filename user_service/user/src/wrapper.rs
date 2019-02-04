@@ -1,4 +1,4 @@
-use crate::user_service_api::models::user::User;
+use crate::model::User;
 
 /// Outcomes is used to wrap Vec<User>
 #[derive(Serialize, Debug, PartialEq,Deserialize)]

@@ -20,13 +20,13 @@ use user::user_service_impl::utilities::wrapper::Outcomes;
 use user::user_service_impl::eventsourcing::user_repository::display::select_user;
 use user::user_service_impl::models::get_user::UserMapper;
 use user::user_service_impl::eventsourcing::user_repository::display::select_all_user;
-use user::user_service_impl::eventsourcing::user_repository::is_present::is_present;
+use user::user_service_impl::eventsourcing::user_repository::user_repository::is_present;
 use user::user_service_impl::eventsourcing::user_repository::insertion::event_persistent;
 use user::user_service_impl::models::p_user::PUser;
 use user::user_service_impl::utilities::initial_state::initial_state;
-use user::user_service_impl::eventsourcing::user_state::models::UserState;
+use user::user_service_impl::eventsourcing::user_state::user_state::UserState;
 use user::user_service_impl::utilities::mappers::map_user;
-use user::user_service_impl::eventsourcing::user_event::models::UserEvent;
+use user::user_service_impl::eventsourcing::user_event::user_event::UserEvent;
 
 fn set_up_db() {
     let session = connect();

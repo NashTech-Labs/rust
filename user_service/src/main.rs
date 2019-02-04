@@ -1,19 +1,18 @@
-extern crate user;
-
 use actix_web::{http, server, App};
 use listenfd::ListenFd;
+use user::user_service_impl::env_setup::initializer;
+use user::user_service_impl::env_setup::connect;
+use user::user_service_impl::handler::AppState;
+use user::user_service_impl::handler::{create_user, get_user, get_all_users, user_login};
 
-use user::user_service_impl::constants::constant::DEBUG_LEVEL_KEY;
-use user::user_service_impl::constants::constant::DEBUG_LEVEL_VALUE;
-use user::user_service_impl::env_setup::set_up::initializer;
-use user::user_service_impl::env_setup::connection::connect;
-use user::user_service_api::user_service::handler::AppState;
-use user::user_service_api::user_service::handler::create_user;
-use user::user_service_api::user_service::handler::user_login;
-use user::user_service_api::user_service::handler::get_user;
-use user::user_service_api::user_service::handler::get_all_users;
-use user::user_service_impl::constants::constant::INDEX;
-use user::user_service_impl::constants::constant::SERVER_BIND_PORT;
+
+pub static DEBUG_LEVEL_KEY: &str = "RUST_LOG";
+
+pub static DEBUG_LEVEL_VALUE: &str = "actix_web=debug";
+
+pub static SERVER_BIND_PORT: &str = "127.0.0.1:3080";
+
+pub static INDEX: usize = 0;
 
 #[cfg_attr(tarpaulin,skip)]
 fn main() {

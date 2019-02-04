@@ -1,9 +1,34 @@
-use crate::user_service_impl::eventsourcing::user_command::models::UserCommand;
-use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
-use crate::user_service_impl::eventsourcing::user_state::models::UserState;
-use crate::user_service_impl::models::p_user::PUser;
+use crate::user_service_impl::eventsourcing::user_command::UserCommand;
+use crate::user_service_impl::eventsourcing::user_event::UserEvent;
+use crate::user_service_impl::eventsourcing::user_state::UserState;
 use eventsourcing::{Result,Aggregate};
-use crate::user_service_api::user_service::handler::get_id_by_email;
+use crate::user_service_impl::handler::get_id_by_email;
+use cdrs::types::prelude::*;
+use cdrs::frame::TryFromRow;
+use cdrs::frame::IntoBytes;
+use cdrs::types::from_cdrs::FromCDRSByName;
+
+/// initial_state is used to set the initial value of UserState
+pub fn initial_state() -> UserState {
+    UserState {
+        user: PUser {
+            id: "".to_string(),
+            name: "".to_string(),
+            email: "".to_string(),
+            password: "".to_string(),
+        },
+        generation: 0,
+    }
+}
+
+/// PUser is used to map the details at storing time
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, IntoCDRSValue, TryFromRow)]
+pub struct PUser {
+    pub id: String,
+    pub name: String,
+    pub email: String,
+    pub password: String,
+}
 
 impl Aggregate for PUser {
     type Event = UserEvent;

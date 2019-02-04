@@ -11,7 +11,6 @@ use crate::user_service_impl::controller::error::CustomError;
 use crate::user_service_impl::env_setup::connection::CurrentSession;
 use crate::user_service_impl::eventsourcing::user_event::models::UserEvent;
 use crate::user_service_impl::eventsourcing::user_state::models::UserState;
-use crate::user_service_impl::env_setup::connection::connect;
 
 /// event_persistent is used to store the events against a particular user
 pub fn event_persistent(

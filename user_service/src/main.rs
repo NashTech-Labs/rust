@@ -2,7 +2,7 @@ use actix_web::{http, server, App};
 use listenfd::ListenFd;
 use user::user_service_impl::env_setup::initializer;
 use user::user_service_impl::env_setup::connect;
-use user::user_service_impl::handler::AppState;
+use user::user_service_api::handler::AppState;
 use user::user_service_impl::handler::{create_user, get_user, get_all_users, user_login};
 
 

@@ -1,0 +1,3 @@
+debug = true
+
+database_port_address = "127.0.0.1:9042"

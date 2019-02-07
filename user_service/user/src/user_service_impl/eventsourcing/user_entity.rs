@@ -1,12 +1,12 @@
 use crate::user_service_impl::eventsourcing::user_command::UserCommand;
 use crate::user_service_impl::eventsourcing::user_event::UserEvent;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
-use eventsourcing::{Result,Aggregate};
 use crate::user_service_impl::handler::get_id_by_email;
-use cdrs::types::prelude::*;
-use cdrs::frame::TryFromRow;
 use cdrs::frame::IntoBytes;
+use cdrs::frame::TryFromRow;
 use cdrs::types::from_cdrs::FromCDRSByName;
+use cdrs::types::prelude::*;
+use eventsourcing::{Aggregate, Result};
 
 /// initial_state is used to set the initial value of UserState
 pub fn initial_state() -> UserState {
@@ -36,7 +36,7 @@ impl Aggregate for PUser {
     type State = UserState;
 
     /// apply_event takes events and state as input parameter and returns result of states
-    #[cfg_attr(tarpaulin,skip)]
+    #[cfg_attr(tarpaulin, skip)]
     fn apply_event(state: &Self::State, evt: Self::Event) -> Result<Self::State> {
         let user_state: UserState = match evt {
             UserEvent::UserCreated(puser) => UserState {
@@ -49,7 +49,7 @@ impl Aggregate for PUser {
 
     /// handle_command takes command and state as input parameter and
     /// returns result of vector of events
-    #[cfg_attr(tarpaulin,skip)]
+    #[cfg_attr(tarpaulin, skip)]
     fn handle_command(_state: &Self::State, cmd: Self::Command) -> Result<Vec<Self::Event>> {
         let user_event: UserEvent = match cmd {
             UserCommand::CreateUser(new_user) => UserEvent::UserCreated(PUser {

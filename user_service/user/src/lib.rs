@@ -13,6 +13,7 @@ extern crate eventsourcing;
 #[macro_use]
 extern crate eventsourcing_derive;
 extern crate uuid;
+extern crate config;
 
 pub mod user_service_api {
     pub mod handler;
@@ -25,3 +26,5 @@ pub mod error;
 pub mod model;
 
 pub mod wrapper;
+
+pub mod db_connection;

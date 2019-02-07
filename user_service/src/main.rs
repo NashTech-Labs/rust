@@ -6,15 +6,14 @@ use user::user_service_impl::handler::UserInfo;
 use user::user_service_api::handler::UserService;
 use config::Config;
 use user::db_connection::connect;
+use std::path::Path;
 
 static INDEX: usize = 0;
 
 
 #[cfg_attr(tarpaulin, skip)]
 fn main() {
-    let mut settings: Config = Config::default();
-    settings.merge(config::File::with_name("Settings")).unwrap()
-        .merge(config::Environment::with_prefix("APP")).unwrap();
+
     let key: String = settings.get_str("debug_level_key").unwrap();
     let value: String = settings.get_str("debug_level_value").unwrap();
     let bind_port: String = settings.get_str("server_bind_port").unwrap();

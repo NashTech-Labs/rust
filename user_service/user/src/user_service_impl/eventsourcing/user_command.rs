@@ -1,4 +1,4 @@
-use crate::user_service_api::models::user_registration::UserRegistration;
+use crate::model::UserRegistration;
 
 /// UserCommand is a struct which holds following commands for user as field
 #[derive(Debug)]

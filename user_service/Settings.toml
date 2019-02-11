@@ -1,7 +1,0 @@
-debug = true
-
-debug_level_key = "RUST_LOG"
-
-debug_level_value = "actix_web=debug"
-
-server_bind_port = "127.0.0.1:3080"

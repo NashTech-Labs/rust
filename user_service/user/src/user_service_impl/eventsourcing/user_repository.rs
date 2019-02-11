@@ -13,18 +13,18 @@ use cdrs::{self, types::prelude::*};
 use std::cell::RefCell;
 use crate::db_connection::CurrentSession;
 
-pub static USER_EVENT_STORE_QUERY: &str =
+static USER_EVENT_STORE_QUERY: &str =
     "INSERT INTO user_event_sourcing_ks.user_events (user_id,user_event) \
      VALUES (?,?)";
 
-pub static USER_STATE_STORE_QUERY: &str =
+static USER_STATE_STORE_QUERY: &str =
     "INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
      VALUES (?,?)";
 
-pub static SELECT_QUERY: &str =
+static SELECT_QUERY: &str =
     "SELECT * FROM user_event_sourcing_ks.user_states WHERE user_id = ? ";
 
-pub static SELECT_ALL_QUERY: &str = "SELECT * FROM user_event_sourcing_ks.user_states";
+static SELECT_ALL_QUERY: &str = "SELECT * FROM user_event_sourcing_ks.user_states";
 
 /// UserMapper is used to map the details at retrieval time
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, IntoCDRSValue, TryFromRow)]
@@ -61,7 +61,7 @@ pub fn event_persistent(
 }
 
 /// state_persistent is used to store the states against a particular user
-fn state_persistent<'a, 'b>(
+pub fn state_persistent<'a, 'b>(
     session: &'a CurrentSession,
     new_user: &'b UserState,
     user_id: String,
@@ -132,19 +132,106 @@ pub fn is_present(session: &CurrentSession, id: String) -> bool {
         .is_empty()
 }
 
-#[test]
-fn test_state_persistent() {
-    use crate::user_service_impl::env_setup::connection::connect;
-    let user_state: UserState = UserState {
-        user: puser,
-        generation: 1,
-    };
-    assert_eq!(
-        state_persistent(
+#[cfg(test)]
+mod tests {
+    use crate::db_connection::connect;
+    use crate::user_service_impl::eventsourcing::user_state::UserState;
+    use crate::user_service_impl::eventsourcing::user_repository::state_persistent;
+    use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
+    use crate::user_service_impl::eventsourcing::user_repository::select_user;
+    use crate::user_service_impl::eventsourcing::user_repository::select_all_user;
+    use crate::user_service_impl::eventsourcing::user_repository::is_present;
+    use crate::user_service_impl::eventsourcing::user_entity::PUser;
+    use crate::user_service_impl::eventsourcing::user_event::UserEvent;
+    use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
+
+    #[test]
+    fn test_state_persistent() {
+       let user_state: UserState = UserState {
+            user: PUser{
+                id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
+                name: "shikha".to_string(),
+                email: "shikha97887@gmail.com".to_string(),
+                password: "shikha123".to_string()
+            },
+            generation: 1,
+        };
+        assert_eq!(
+            state_persistent(
+                &connect(),
+                &user_state,
+                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+            ),
+            Ok("successfully state stored")
+        )
+    }
+
+    #[test]
+    fn test_select_user() {
+        let user_mapper: UserMapper = UserMapper {
+            user_id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
+            user_state:
+            "{\"user\":{\"id\":\"c6fd1799-b363-57f5-a4f5-6bfc12cef619\",\"name\":\"shikha\",\
+             \"email\":\"shikha97887@gmail.com\",\"password\":\"shikha123\"},\"generation\":1}"
+                .to_string(),
+        };
+        let user_detail: Vec<UserMapper> = vec![user_mapper];
+        assert_eq!(
+            select_user(
+                &connect(),
+                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+            ),
+            user_detail
+        )
+    }
+
+    #[test]
+    fn test_select_all_user() {
+        assert_ne!(select_all_user(&connect()).len(), 0)
+    }
+
+    #[test]
+    fn test_select_user_not_exist() {
+        assert!(select_user(
             &connect(),
-            &user_state,
-            "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string()
-        ),
-        Ok("successfully state stored")
-    )
+            "yc6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+        )
+            .is_empty())
+    }
+
+    #[test]
+    fn test_is_present() {
+        assert_eq!(
+            is_present(
+                &connect(),
+                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+            ),
+            false
+        )
+    }
+
+    #[test]
+    fn test_event_persistent() {
+        let puser: PUser = PUser {
+            id: "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
+            name: "rahul".to_string(),
+            email: "rsb007@gmail.com".to_string(),
+            password: "rsb007@".to_string(),
+        };
+        let user_event: UserEvent = UserEvent::UserCreated(puser.clone());
+        let user_state: UserState = UserState {
+            user: puser,
+            generation: 1,
+        };
+        assert_eq!(
+            event_persistent(
+                &connect(),
+                &user_event,
+                "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
+                &user_state
+            ),
+            Ok("successfully event stored")
+        )
+    }
+
 }

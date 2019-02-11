@@ -62,3 +62,26 @@ impl Aggregate for PUser {
         Ok(vec![user_event])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::user_service_impl::eventsourcing::user_entity::initial_state;
+    use crate::user_service_impl::eventsourcing::user_state::UserState;
+    use crate::user_service_impl::eventsourcing::user_entity::PUser;
+
+    #[test]
+    fn test_initial_state() {
+        assert_eq!(
+            initial_state(),
+            UserState {
+                user: PUser {
+                    id: "".to_string(),
+                    name: "".to_string(),
+                    email: "".to_string(),
+                    password: "".to_string(),
+                },
+                generation: 0,
+            }
+        )
+    }
+}

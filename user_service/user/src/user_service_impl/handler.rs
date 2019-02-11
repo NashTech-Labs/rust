@@ -14,7 +14,7 @@ use crate::user_service_impl::eventsourcing::user_repository::select_all_user;
 use crate::user_service_impl::eventsourcing::user_repository::select_user;
 use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
-use crate::db_connection::CurrentSession;
+//use crate::db_connection::CurrentSession;
 use crate::wrapper::wrap_vec;
 use crate::wrapper::Outcomes;
 use actix_web::*;
@@ -147,5 +147,38 @@ pub fn map_user(user: PUser) -> User {
         id: user.id,
         name: user.name,
         email: user.email,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::user_service_impl::handler::get_id_by_email;
+    use crate::user_service_impl::handler::map_user;
+    use crate::user_service_impl::eventsourcing::user_entity::PUser;
+    use crate::model::User;
+
+    #[test]
+    fn test_get_id_by_email() {
+        assert_eq!(
+            get_id_by_email("sid@gmail.com").to_string(),
+            "a9c8536e-75ee-582b-a145-b6ace45abe9d".to_string()
+        )
+    }
+
+    #[test]
+    fn test_map_user() {
+        assert_eq!(
+            map_user(PUser {
+                id: String::new(),
+                name: String::new(),
+                email: String::new(),
+                password: String::new()
+            }),
+            User {
+                id: String::new(),
+                name: String::new(),
+                email: String::new()
+            }
+        )
     }
 }

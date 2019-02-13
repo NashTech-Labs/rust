@@ -181,4 +181,25 @@ mod tests {
             }
         )
     }
+    use crate::user_service_api::user_service::AppState;
+    use crate::db_connection::connect;
+    use crate::user_service_impl::handler::UserInfo;
+    use actix_web::HttpResponse;
+    use crate::user_service_api::user_service::UserService;
+    use crate::model::UserRegistration;
+    use actix_web::Json;
+    #[test]
+    fn test_create_user() {
+        let test_user = Json(UserRegistration {
+            name: "rudar".to_string(),
+            email: "rudar@gmail.com".to_string(),
+            password: "rudar@123".to_string(),
+        });
+
+        let resp = actix_web::test::TestRequest::with_state(AppState { session: connect()});
+
+           let response = resp.run_async(&UserService::create_user)
+            .unwrap();
+        assert!(response.status().is_success());
+    }
 }

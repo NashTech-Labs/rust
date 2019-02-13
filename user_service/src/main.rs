@@ -3,10 +3,10 @@ extern crate lazy_static;
 
 use actix_web::{http, server, App};
 use listenfd::ListenFd;
-use user::user_service_api::handler::AppState;
+use user::user_service_api::user_service::AppState;
 use user::user_service_impl::env_setup::initializer;
 use user::user_service_impl::handler::UserInfo;
-use user::user_service_api::handler::UserService;
+use user::user_service_api::user_service::UserService;
 use config::Config;
 use user::db_connection::connect;
 use std::error::Error;

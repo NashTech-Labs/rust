@@ -1,0 +1,14 @@
+
+USER_EVENT_STORE_QUERY = "INSERT INTO user_event_sourcing_ks.user_events (user_id,user_event) VALUES (?,?)"
+
+USER_STATE_STORE_QUERY = "INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) VALUES (?,?)"
+
+SELECT_QUERY = "SELECT * FROM user_event_sourcing_ks.user_states WHERE user_id = ? "
+
+SELECT_ALL_QUERY = "SELECT * FROM user_event_sourcing_ks.user_states"
+
+KEYSPACE_QUERY = "CREATE KEYSPACE IF NOT EXISTS user_event_sourcing_ks WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };"
+
+EVENT_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS user_event_sourcing_ks.user_events (user_id text PRIMARY KEY , user_event text);"
+
+STATE_TABLE_QUERY = "CREATE TABLE IF NOT EXISTS user_event_sourcing_ks.user_states (user_id text PRIMARY KEY ,user_state text);"

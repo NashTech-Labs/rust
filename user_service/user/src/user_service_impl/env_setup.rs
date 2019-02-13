@@ -1,23 +1,17 @@
 use cdrs::query::QueryExecutor;
 use crate::db_connection::CurrentSession;
-
-static KEYSPACE_QUERY: &str =
-    "CREATE KEYSPACE IF NOT EXISTS user_event_sourcing_ks WITH REPLICATION = {\
-     'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
-
-static EVENT_TABLE_QUERY: &str =
-    "CREATE TABLE IF NOT EXISTS user_event_sourcing_ks.user_events\
-     (user_id text PRIMARY KEY , user_event text);";
-
-static STATE_TABLE_QUERY: &str =
-    "CREATE TABLE IF NOT EXISTS user_event_sourcing_ks.user_states \
-     (user_id text PRIMARY KEY ,user_state text);";
+use std::fs;
+use glob::glob;
+use config::*;
+use std::collections::HashMap;
+use crate::user_service_impl::eventsourcing::user_repository::configration_reader;
 
 /// create_keyspace takes Current Session and keyspace_name
 /// * and creates a keyspace in database and return string
 fn create_keyspace(session: &CurrentSession) -> &'static str {
+    //let KEYSPACE_QUERY =
     session
-        .query(KEYSPACE_QUERY)
+        .query(configration_reader().get("keyspace_query").unwrap())
         .expect("keyspace creation error");
     "keyspace created successfully"
 }
@@ -25,6 +19,10 @@ fn create_keyspace(session: &CurrentSession) -> &'static str {
 /// create_table takes Current Session and table_name
 /// * and create tables in database and return string
 fn create_table(session: &CurrentSession) -> &'static str {
+
+    let EVENT_TABLE_QUERY = configration_reader().get("event_table_query").unwrap().to_owned();
+    let STATE_TABLE_QUERY = configration_reader().get("state_table_query").unwrap().to_owned();
+
     session
         .query(EVENT_TABLE_QUERY)
         .expect("Event Table creation error");

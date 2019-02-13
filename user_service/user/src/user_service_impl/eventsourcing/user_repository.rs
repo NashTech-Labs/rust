@@ -12,25 +12,25 @@ use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::{self, types::prelude::*};
 use std::cell::RefCell;
 use crate::db_connection::CurrentSession;
-
-static USER_EVENT_STORE_QUERY: &str =
-    "INSERT INTO user_event_sourcing_ks.user_events (user_id,user_event) \
-     VALUES (?,?)";
-
-static USER_STATE_STORE_QUERY: &str =
-    "INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
-     VALUES (?,?)";
-
-static SELECT_QUERY: &str =
-    "SELECT * FROM user_event_sourcing_ks.user_states WHERE user_id = ? ";
-
-static SELECT_ALL_QUERY: &str = "SELECT * FROM user_event_sourcing_ks.user_states";
-
+use std::fs;
+use config::Config;
+use std::collections::HashMap;
+use glob::glob;
+use config::ConfigError;
+use crate::user_service_impl::env_setup::initializer;
 /// UserMapper is used to map the details at retrieval time
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, IntoCDRSValue, TryFromRow)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq,  TryFromRow)]
 pub struct UserMapper {
     pub user_id: String,
     pub user_state: String,
+}
+
+
+pub fn configration_reader() -> HashMap<String,String> {
+    let mut settings:Config = Config::default();
+     settings
+        .merge(config::File::with_name("Query")).unwrap();
+    settings.try_into::<HashMap<String, String>>().unwrap()
 }
 
 /// event_persistent is used to store the events against a particular user
@@ -40,6 +40,11 @@ pub fn event_persistent(
     user_id: String,
     user_state: &UserState,
 ) -> Result<&'static str, CustomError> {
+
+   // println!("{:?}", configration_reader().get("user_event_store_query"));
+
+    let USER_EVENT_STORE_QUERY = configration_reader().get("user_event_store_query").expect("event store query").to_owned();
+
     let user_json: String = serde_json::to_string(&new_user).unwrap();
     session
         .query_with_values(
@@ -67,6 +72,9 @@ pub fn state_persistent<'a, 'b>(
     user_id: String,
 ) -> Result<&'static str, CustomError> {
     let user_state_json: String = serde_json::to_string(&new_user).unwrap();
+
+    let USER_STATE_STORE_QUERY = configration_reader().get("user_state_store_query").unwrap().to_owned();
+
     let query_status: Result<Frame, Error> = session.query_with_values(
         USER_STATE_STORE_QUERY,
         query_values!(user_id, user_state_json),
@@ -81,7 +89,10 @@ pub fn state_persistent<'a, 'b>(
 }
 
 /// select_user is used to retrieve a user detail based on user_id
-pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
+pub fn get_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
+
+    let SELECT_QUERY = configration_reader().get("select_query").unwrap().to_owned();
+
     let user_state_rows: Vec<Row> = session
         .query_with_values(SELECT_QUERY, query_values!(user_id))
         .expect("is_select error")
@@ -101,7 +112,8 @@ pub fn select_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper>
 }
 
 /// select_all_user is used to retrieve list of all users' details
-pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {
+pub fn get_all_user(session: &CurrentSession) -> Vec<UserMapper> {
+    let SELECT_ALL_QUERY = configration_reader().get("select_all_query").unwrap().to_owned();
     let user_state_rows: Vec<Row> = session
         .query(SELECT_ALL_QUERY)
         .expect("is_select_all error")
@@ -122,6 +134,7 @@ pub fn select_all_user(session: &CurrentSession) -> Vec<UserMapper> {
 
 /// is_present is used to check whether a particular user's state is exists in database or not
 pub fn is_present(session: &CurrentSession, id: String) -> bool {
+    let SELECT_QUERY = configration_reader().get("select_query").unwrap().to_owned();
     session
         .query_with_values(SELECT_QUERY, query_values!(id))
         .expect("isPresent error")
@@ -132,18 +145,24 @@ pub fn is_present(session: &CurrentSession, id: String) -> bool {
         .is_empty()
 }
 
+
 #[cfg(test)]
 mod tests {
     use crate::db_connection::connect;
     use crate::user_service_impl::eventsourcing::user_state::UserState;
     use crate::user_service_impl::eventsourcing::user_repository::state_persistent;
     use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
-    use crate::user_service_impl::eventsourcing::user_repository::select_user;
-    use crate::user_service_impl::eventsourcing::user_repository::select_all_user;
+    use crate::user_service_impl::eventsourcing::user_repository::get_user;
+    use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
     use crate::user_service_impl::eventsourcing::user_repository::is_present;
     use crate::user_service_impl::eventsourcing::user_entity::PUser;
     use crate::user_service_impl::eventsourcing::user_event::UserEvent;
     use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
+
+
+    #[test]
+    fn test_db_up() {
+    }
 
     #[test]
     fn test_state_persistent() {
@@ -177,7 +196,7 @@ mod tests {
         };
         let user_detail: Vec<UserMapper> = vec![user_mapper];
         assert_eq!(
-            select_user(
+            get_user(
                 &connect(),
                 "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
             ),
@@ -187,12 +206,12 @@ mod tests {
 
     #[test]
     fn test_select_all_user() {
-        assert_ne!(select_all_user(&connect()).len(), 0)
+        assert_ne!(get_all_user(&connect()).len(), 0)
     }
 
     #[test]
     fn test_select_user_not_exist() {
-        assert!(select_user(
+        assert!(get_user(
             &connect(),
             "yc6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
         )

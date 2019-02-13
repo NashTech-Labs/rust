@@ -14,9 +14,11 @@ extern crate eventsourcing;
 extern crate eventsourcing_derive;
 extern crate uuid;
 extern crate config;
+extern crate glob;
+
 
 pub mod user_service_api {
-    pub mod handler;
+    pub mod user_service;
 }
 
 pub mod user_service_impl;
@@ -25,6 +27,6 @@ pub mod error;
 
 pub mod model;
 
-pub mod wrapper;
+pub mod utility;
 
 pub mod db_connection;

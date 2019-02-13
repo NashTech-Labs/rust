@@ -2,7 +2,7 @@ use crate::error::CustomError;
 use crate::model::User;
 use crate::model::UserLogin;
 use crate::model::UserRegistration;
-use crate::wrapper::Outcomes;
+use crate::utility::Outcomes;
 use crate::db_connection::CurrentSession;
 use actix_web::Json;
 use actix_web::Path;

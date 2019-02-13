@@ -12,8 +12,8 @@ pub fn wrap_vec<T>(v: Vec<T>) -> Outcomes<T> {
 #[cfg(test)]
 mod tests {
     use crate::model::User;
-    use crate::wrapper::Outcomes;
-    use crate::wrapper::wrap_vec;
+    use crate::utility::Outcomes;
+    use crate::utility::wrap_vec;
 
     #[test]
     fn test_wrap_vec() {

@@ -9,10 +9,10 @@ use serde_json::Value;
 use std::str;
 use user::model::UserLogin;
 use user::model::UserRegistration;
-use user::user_service_api::handler::AppState;
+use user::user_service_api::user_service::AppState;
 use user::db_connection::connect;
 use user::user_service_impl::handler::UserInfo;
-use user::user_service_api::handler::UserService;
+use user::user_service_api::user_service::UserService;
 
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {

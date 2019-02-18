@@ -2,21 +2,21 @@ use crate::error::CustomError;
 use crate::model::User;
 use crate::model::UserLogin;
 use crate::model::UserRegistration;
-use crate::user_service_api::handler::AppState;
-use crate::user_service_api::handler::UserService;
+use crate::user_service_api::user_service::AppState;
+use crate::user_service_api::user_service::UserService;
 use crate::user_service_impl::eventsourcing::user_command::UserCommand;
 use crate::user_service_impl::eventsourcing::user_entity::initial_state;
 use crate::user_service_impl::eventsourcing::user_entity::PUser;
 use crate::user_service_impl::eventsourcing::user_event::UserEvent;
 use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
 use crate::user_service_impl::eventsourcing::user_repository::is_present;
-use crate::user_service_impl::eventsourcing::user_repository::select_all_user;
-use crate::user_service_impl::eventsourcing::user_repository::select_user;
+use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
+use crate::user_service_impl::eventsourcing::user_repository::get_user;
 use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
 //use crate::db_connection::CurrentSession;
-use crate::wrapper::wrap_vec;
-use crate::wrapper::Outcomes;
+use crate::utility::wrap_vec;
+use crate::utility::Outcomes;
 use actix_web::*;
 use eventsourcing::Aggregate;
 use futures::future::result;
@@ -68,7 +68,7 @@ impl UserService for UserInfo {
         data: State<AppState>,
         user_id: Path<String>,
     ) -> Box<Future<Item = Json<User>, Error = CustomError>> {
-        let user_mapper_list: Vec<UserMapper> = select_user(&data.session, user_id.into_inner());
+        let user_mapper_list: Vec<UserMapper> = get_user(&data.session, user_id.into_inner());
         if user_mapper_list.is_empty() {
             result(Err(CustomError::InvalidInput {
                 field: "user with this id doesn't exist",
@@ -87,7 +87,7 @@ impl UserService for UserInfo {
     fn get_all_users(
         data: State<AppState>,
     ) -> Box<Future<Item = Json<Outcomes<User>>, Error = CustomError>> {
-        let user_mapper: Vec<UserMapper> = select_all_user(&data.session);
+        let user_mapper: Vec<UserMapper> = get_all_user(&data.session);
         let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
         if user_mapper.is_empty() {
             result(Err(CustomError::InternalError {
@@ -113,7 +113,7 @@ impl UserService for UserInfo {
         let u_login: UserLogin = user_login.into_inner();
         let user_email: String = u_login.email;
         let user_id: String = get_id_by_email(user_email.as_str()).to_string();
-        let user_status: Vec<UserMapper> = select_user(&data.session, user_id.clone());
+        let user_status: Vec<UserMapper> = get_user(&data.session, user_id.clone());
         if user_status.is_empty() {
             result(Err(CustomError::InvalidInput {
                 field: "user not found",
@@ -169,15 +169,15 @@ mod tests {
     fn test_map_user() {
         assert_eq!(
             map_user(PUser {
-                id: String::new(),
-                name: String::new(),
-                email: String::new(),
-                password: String::new()
+                id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
+                name: "Amita".to_string(),
+                email: "amita.yadav@knoldus.in".to_string(),
+                password: "qwerty".to_string()
             }),
             User {
-                id: String::new(),
-                name: String::new(),
-                email: String::new()
+                id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
+                name: "Amita".to_string(),
+                email: "amita.yadav@knoldus.in".to_string(),
             }
         )
     }

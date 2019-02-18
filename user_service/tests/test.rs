@@ -22,13 +22,12 @@ fn create_app() -> App<AppState> {
     initializer(&connect());
     App::with_state(AppState { session: connect() })
         .resource("/create_user", |r| {
-            r.method(http::Method::POST).with_async(UserInfo::create_user)
-        })
-        .resource("/login", |r| r.method(http::Method::POST).with_async(UserInfo::user_login))
+            r.method(http::Method::POST).with_async(UserInfo::create_user)})
+        .resource("/login", |r|{ r.method(http::Method::POST)
+            .with_async(UserInfo::user_login)})
         .resource("/get_user/{user_id}", |r| {
-            r.method(http::Method::GET).with(UserInfo::get_user)
+            r.method(http::Method::GET).with_async(UserInfo::get_user)
         })
-        .resource("/login", |r| r.method(http::Method::POST).with_async(UserInfo::user_login))
         .resource("/get_users", |r| {
             r.method(http::Method::GET).with_async(UserInfo::get_all_users)
         })

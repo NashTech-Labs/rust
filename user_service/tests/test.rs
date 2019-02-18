@@ -30,6 +30,7 @@ use user::user_service_impl::handler::get_id_by_email;
 use eventsourcing::*;
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
+    testing_setup();
     App::with_state(AppState { session: connect() })
         .resource("/create_user", |r| {
             r.method(http::Method::POST).with_async(UserInfo::create_user)
@@ -43,11 +44,13 @@ fn create_app() -> App<AppState> {
             r.method(http::Method::GET).with_async(UserInfo::get_all_users)
         })
 }
+/*
 
 pub fn testing_down() {
     let user_delete_query = "DELETE user_event from user_event_sourcing_ks.user_events WHERE user_id = '42766930-3139-5385-b320-7bf6a6c199f1";
 
 }
+*/
 
 pub fn testing_setup() {
     initializer(&connect());
@@ -88,7 +91,7 @@ pub fn testing_setup() {
 
 #[test]
 fn test_insert_first_time() {
-    testing_setup();
+  //  testing_setup();
     let user_reg: UserRegistration = UserRegistration {
         name: "sid".to_string(),
         email: "sid@gmail.com".to_string(),
@@ -109,7 +112,7 @@ fn test_insert_first_time() {
         json!({"email": "sid@gmail.com", "id":
      "a9c8536e-75ee-582b-a145-b6ace45abe9d", "name" : "sid"})
     );
-    testing_down();
+    //testing_down();
 }
 
 #[test]

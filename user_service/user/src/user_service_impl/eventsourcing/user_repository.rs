@@ -222,21 +222,23 @@ pub fn check_user_exist(session: &CurrentSession, user_id: String) -> Vec<UserMa
 #[cfg(test)]
 mod tests {
     use crate::db_connection::connect;
+    use crate::user_service_impl::eventsourcing::user_state::UserState;
+    use crate::user_service_impl::eventsourcing::user_repository::state_persistent;
+    use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
+    use crate::user_service_impl::eventsourcing::user_repository::get_user;
+    use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
+    use crate::user_service_impl::eventsourcing::user_repository::is_present;
     use crate::user_service_impl::eventsourcing::user_entity::PUser;
     use crate::user_service_impl::eventsourcing::user_event::UserEvent;
     use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
-    use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
-    use crate::user_service_impl::eventsourcing::user_repository::get_user;
-    use crate::user_service_impl::eventsourcing::user_repository::is_present;
-    use crate::user_service_impl::eventsourcing::user_repository::state_persistent;
-    use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
-    use crate::user_service_impl::eventsourcing::user_state::UserState;
-
-    #[test]
-    fn test_db_up() {}
+    use crate::user_service_impl::env_setup::initializer;
+    use crate::db_connection::CurrentSession;
+    use cdrs::query::QueryExecutor;
 
     #[test]
     fn test_state_persistent() {
+        let session: CurrentSession = connect();
+        initializer(&session);
         let user_state: UserState = UserState {
             user: PUser {
                 id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
@@ -250,51 +252,79 @@ mod tests {
             state_persistent(
                 &connect(),
                 &user_state,
-                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
             ),
             Ok("successfully state stored")
-        )
+        );
+        session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")
+            .expect("Deletion error in test");
     }
 
     #[test]
-    fn test_select_user() {
+    fn test_get_user() {
+        let session: CurrentSession = connect();
+        initializer(&session);
         let user_mapper: UserMapper = UserMapper {
             user_id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
             user_state:
-                "{\"user\":{\"id\":\"c6fd1799-b363-57f5-a4f5-6bfc12cef619\",\"name\":\"shikha\",\
-                 \"email\":\"shikha97887@gmail.com\",\"password\":\"shikha123\"},\"generation\":1}"
-                    .to_string(),
+            "{\"user\":{\"id\":\"c6fd1799-b363-57f5-a4f5-6bfc12cef619\",\"name\":\"shikha\",\
+             \"email\":\"shikha97887@gmail.com\",\"password\":\"shikha123\"},\"generation\":1}"
+                .to_string(),
         };
-        let user_detail: Vec<UserMapper> = vec![user_mapper];
+        let user_detail: Vec<UserMapper> = vec![user_mapper.clone()];
+        session.query_with_values("INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
+     VALUES (?,?)", query_values!(user_mapper.user_id,user_mapper.user_state))
+            .expect("Insert Error in Select_user test");
+
+
         assert_eq!(
             get_user(
                 &connect(),
-                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
             ),
             user_detail
-        )
+        );
+        session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")
+            .expect("Deletion error in  Select_user test");
     }
 
     #[test]
-    fn test_select_all_user() {
-        assert_ne!(get_all_user(&connect()).len(), 0)
+    fn test_get_all_user() {
+        let session: CurrentSession = connect();
+        initializer(&session);
+        let user_mapper: UserMapper = UserMapper {
+            user_id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
+            user_state:
+            "{\"user\":{\"id\":\"c6fd1799-b363-57f5-a4f5-6bfc12cef619\",\"name\":\"shikha\",\
+             \"email\":\"shikha97887@gmail.com\",\"password\":\"shikha123\"},\"generation\":1}"
+                .to_string(),
+        };
+        session.query_with_values("INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
+     VALUES (?,?)", query_values!(user_mapper.user_id,user_mapper.user_state))
+            .expect("Insert Error in Select_user test");
+        assert_ne!(get_all_user(&connect()).len(), 0);
+        session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")
+            .expect("Deletion error in  Select_user test");
     }
 
     #[test]
     fn test_select_user_not_exist() {
+        initializer(&connect());
         assert!(get_user(
             &connect(),
-            "yc6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+            "yc6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
         )
-        .is_empty())
+            .is_empty())
     }
 
     #[test]
     fn test_is_present() {
+        let session: CurrentSession = connect();
+        initializer(&session);
         assert_eq!(
             is_present(
-                &connect(),
-                "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string()
+                &session,
+                "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
             ),
             false
         )
@@ -302,6 +332,8 @@ mod tests {
 
     #[test]
     fn test_event_persistent() {
+        let session: CurrentSession = connect();
+        initializer(&session);
         let puser: PUser = PUser {
             id: "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
             name: "rahul".to_string(),
@@ -318,10 +350,11 @@ mod tests {
                 &connect(),
                 &user_event,
                 "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
-                &user_state
+                &user_state,
             ),
             Ok("successfully event stored")
-        )
+        );
+        session.query("DELETE from user_event_sourcing_ks.user_events WHERE user_id = 'f95dfd0b-e2fa-5b88-a284-578f9a015f4d'")
+            .expect("Deletion error in event persistent test");
     }
-
 }

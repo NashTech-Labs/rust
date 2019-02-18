@@ -15,11 +15,8 @@ use crate::user_service_impl::eventsourcing::user_repository::is_present;
 use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
 //use crate::db_connection::CurrentSession;
-use crate::user_service_impl::eventsourcing::user_repository::check_user_exist;
-use crate::user_service_impl::eventsourcing::user_repository::configration_reader;
-use crate::user_service_impl::eventsourcing::user_repository::map_user;
-use crate::utility::wrap_vec;
-use crate::utility::Outcomes;
+use crate::wrapper::wrap_vec;
+use crate::wrapper::Outcomes;
 use actix_web::*;
 use cdrs::query::QueryExecutor;
 use cdrs::{self, types::prelude::*};
@@ -121,10 +118,10 @@ pub fn get_id_by_email(user_email: &str) -> Uuid {
 
 #[cfg(test)]
 mod tests {
-    use crate::model::User;
-    use crate::user_service_impl::eventsourcing::user_entity::PUser;
     use crate::user_service_impl::handler::get_id_by_email;
     use crate::user_service_impl::handler::map_user;
+    use crate::user_service_impl::eventsourcing::user_entity::PUser;
+    use crate::model::User;
 
     #[test]
     fn test_get_id_by_email() {
@@ -138,37 +135,16 @@ mod tests {
     fn test_map_user() {
         assert_eq!(
             map_user(PUser {
-                id: String::new(),
-                name: String::new(),
-                email: String::new(),
-                password: String::new()
+                id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
+                name: "Amita".to_string(),
+                email: "amita.yadav@knoldus.in".to_string(),
+                password: "qwerty".to_string()
             }),
             User {
-                id: String::new(),
-                name: String::new(),
-                email: String::new()
+                id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
+                name: "Amita".to_string(),
+                email: "amita.yadav@knoldus.in".to_string(),
             }
         )
     }
-    /* use crate::user_service_api::user_service::AppState;
-    use crate::db_connection::connect;
-    use crate::user_service_impl::handler::UserInfo;
-    use actix_web::HttpResponse;
-    use crate::user_service_api::user_service::UserService;
-    use crate::model::UserRegistration;
-    use actix_web::Json;
-    #[test]
-    fn test_create_user() {
-        let test_user = Json(UserRegistration {
-            name: "rudar".to_string(),
-            email: "rudar@gmail.com".to_string(),
-            password: "rudar@123".to_string(),
-        });
-
-        let resp = actix_web::test::TestRequest::with_state(AppState { session: connect()});
-
-           let response = resp.run_async(&UserService::create_user)
-            .unwrap();
-        assert!(response.status().is_success());
-    }*/
 }

@@ -14,6 +14,12 @@ extern crate eventsourcing;
 extern crate eventsourcing_derive;
 extern crate uuid;
 extern crate config;
+#[macro_use]
+extern crate validator_derive;
+extern crate validator;
+/*#[macro_use]
+extern crate lazy_static;
+extern crate regex;*/
 
 pub mod user_service_api {
     pub mod user_service;

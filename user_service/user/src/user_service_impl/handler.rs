@@ -14,9 +14,10 @@ use crate::user_service_impl::eventsourcing::user_repository::get_user;
 use crate::user_service_impl::eventsourcing::user_repository::is_present;
 use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
+
+use crate::user_service_impl::eventsourcing::user_repository::check_user_exist;
+use crate::utility::Outcomes;
 //use crate::db_connection::CurrentSession;
-use crate::wrapper::wrap_vec;
-use crate::wrapper::Outcomes;
 use actix_web::*;
 use cdrs::query::QueryExecutor;
 use cdrs::{self, types::prelude::*};
@@ -119,7 +120,7 @@ pub fn get_id_by_email(user_email: &str) -> Uuid {
 #[cfg(test)]
 mod tests {
     use crate::user_service_impl::handler::get_id_by_email;
-    use crate::user_service_impl::handler::map_user;
+    use crate::user_service_impl::eventsourcing::user_repository::map_user;
     use crate::user_service_impl::eventsourcing::user_entity::PUser;
     use crate::model::User;
 

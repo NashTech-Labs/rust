@@ -15,7 +15,9 @@ extern crate eventsourcing_derive;
 extern crate uuid;
 extern crate config;
 extern crate glob;
-
+extern crate futures_timer;
+extern crate tokio_timer;
+extern crate tokio;
 
 pub mod user_service_api {
     pub mod user_service;

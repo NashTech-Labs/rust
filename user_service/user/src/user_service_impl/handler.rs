@@ -90,9 +90,13 @@ impl UserService for UserInfo {
             }))
                 .responder()
         } else {
-            let user_state: UserState =
-                serde_json::from_str(&user_mapper_list[INDEX].user_state).unwrap();
-            result(Ok(Json(map_user(user_state.user)))).responder()
+            if let Some(userid) = session.get::<String>("userid").unwrap() {
+                let user_state: UserState =
+                    serde_json::from_str(&user_mapper_list[INDEX].user_state).unwrap();
+                result(Ok(Json(map_user(user_state.user)))).responder()
+            } else {
+               result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
+            }
         }
     }
 
@@ -139,6 +143,14 @@ impl UserService for UserInfo {
                     }))
                         .responder()
                 } else {
+
+                    if let Some(userid) = session.get::<String>("userid").unwrap() {
+                        println!("SESSION value: {}", userid);
+                        session.set("userid", user_id.to_owned()).unwrap();
+                    } else {
+                        session.set("userid", user_id.to_owned()).unwrap();
+                    }
+
                     let user_state: UserState =
                         serde_json::from_str(&user_status[INDEX].user_state).unwrap();
                     let user_password: String = user_state.user.password;
@@ -161,6 +173,15 @@ impl UserService for UserInfo {
         }
     }
 }
+
+
+
+/*if let Some(count) = session.get::<i32>("counter").unwrap() {
+                  println!("SESSION value: {}", count);
+                 session.set("counter", count+1).unwrap();
+              } else {
+                    session.set("counter", 1).unwrap();
+             }*/
 
 /// this method is used to retrieve the id from email
 pub fn get_id_by_email(user_email: &str) -> Uuid {

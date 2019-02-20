@@ -12,7 +12,7 @@ use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
 use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
-
+use std::time::Duration;
 static INDEX: usize = 0;
 
 lazy_static! {

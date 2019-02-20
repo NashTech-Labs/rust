@@ -156,7 +156,7 @@ fn test_display_by_wrong_id() {
     let request: ClientRequest = server
         .client(
             http::Method::GET,
-            "/get_user/9216d4b7-3f05-5118-88d4-2daa9ec67418",
+            "/get_user/16d4b7-3f05-5118-88d4-2daa9ec67418",
         )
         .finish()
         .unwrap();

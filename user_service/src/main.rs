@@ -11,7 +11,7 @@ use config::Config;
 use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
-//use log::error;
+use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
 
 static INDEX: usize = 0;
 
@@ -46,11 +46,6 @@ impl ConfigSetting {
 }
 #[cfg_attr(tarpaulin, skip)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-
-    /*let key: String = settings.get_str("debug_level_key").unwrap();
-    let value: String = settings.get_str("debug_level_value").unwrap();
-    let bind_port: String = settings.get_str("server_bind_port").unwrap();*/
-
     let config_setting: ConfigSetting = ConfigSetting::new()?;
     ::std::env::set_var(config_setting.debug_level_key, config_setting.debug_level_value);
     env_logger::init();
@@ -59,6 +54,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
+            .middleware(SessionStorage::new(
+                CookieSessionBackend::signed(&[0;32])
+                    .secure(false)
+            ))
             .resource("/create_user", |r| {
                 r.method(http::Method::POST).with_async(UserInfo::create_user)
             })
@@ -81,26 +80,3 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     server.run();
     Ok(())
 }
-
-/*
-#[cfg(test)]
-mod test {
-    use user::user_service_impl::handler::UserInfo;
-    use actix_web::{test,http};
-    use user::user_service_api::user_service::AppState;
-    use user::db_connection::connect;
-    use user::user_service_api::user_service::UserService;
-
-    #[test]
-    fn test_main() {
-        let resp = test::TestRequest::with_state(AppState{session: connect() })
-            .set_payload().run(&UserInfo::create_user)
-            .unwrap();
-        assert_eq!(resp.status(), http::StatusCode::OK);
-
-      *//*  let resp = test::TestRequest::default()
-            .run(&index)
-            .unwrap();
-        assert_eq!(resp.status(), http::StatusCode::BAD_REQUEST);*//*
-    }
-}*/

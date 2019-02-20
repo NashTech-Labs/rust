@@ -12,7 +12,6 @@ use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
 use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
-//use log::error;
 
 static INDEX: usize = 0;
 

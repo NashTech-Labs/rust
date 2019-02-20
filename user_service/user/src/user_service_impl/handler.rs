@@ -40,12 +40,6 @@ impl UserService for UserInfo {
         user_reg: Json<UserRegistration>,
         session: Session,
     ) -> Box<Future<Item=Json<User>, Error=CustomError>> {
-        /*
-                if let Some(count) = session.get::<i32>("counter")? {
-                    session.set("counter", count + 1)?;
-                } else {
-                    session.set("counter", 1)?;
-                }*/
         let new_user: UserRegistration = user_reg.into_inner();
         match new_user.validate() {
             Ok(_) => {
@@ -168,50 +162,50 @@ impl UserService for UserInfo {
     }
 }
 
-    /// this method is used to retrieve the id from email
-    pub fn get_id_by_email(user_email: &str) -> Uuid {
-        let user_id: Uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
-        user_id
-    }
+/// this method is used to retrieve the id from email
+pub fn get_id_by_email(user_email: &str) -> Uuid {
+    let user_id: Uuid = Uuid::new_v5(&Uuid::NAMESPACE_URL, user_email.as_bytes());
+    user_id
+}
 
-    /// map_user is used to map PUser into User
-    pub fn map_user(user: PUser) -> User {
-        User {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-        }
+/// map_user is used to map PUser into User
+pub fn map_user(user: PUser) -> User {
+    User {
+        id: user.id,
+        name: user.name,
+        email: user.email,
     }
+}
 
-    # [cfg(test)]
-    mod tests {
+#[cfg(test)]
+mod tests {
     use crate::user_service_impl::handler::get_id_by_email;
     use crate::user_service_impl::handler::map_user;
     use crate::user_service_impl::eventsourcing::user_entity::PUser;
     use crate::model::User;
 
-    # [test]
+    #[test]
     fn test_get_id_by_email() {
-    assert_eq ! (
-    get_id_by_email("sid@gmail.com").to_string(),
-    "a9c8536e-75ee-582b-a145-b6ace45abe9d".to_string()
-    )
+        assert_eq!(
+            get_id_by_email("sid@gmail.com").to_string(),
+            "a9c8536e-75ee-582b-a145-b6ace45abe9d".to_string()
+        )
     }
 
-    # [test]
+    #[test]
     fn test_map_user() {
-    assert_eq ! (
-    map_user(PUser {
-    id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
-    name: "Amita".to_string(),
-    email: "amita.yadav@knoldus.in".to_string(),
-    password: "qwerty".to_string(),
-    }),
-    User {
-    id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
-    name: "Amita".to_string(),
-    email: "amita.yadav@knoldus.in".to_string(),
+        assert_eq!(
+            map_user(PUser {
+                id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
+                name: "Amita".to_string(),
+                email: "amita.yadav@knoldus.in".to_string(),
+                password: "qwerty".to_string(),
+            }),
+            User {
+                id: "52ec207c-c87e-519e-9297-0c67cc2df8ee".to_string(),
+                name: "Amita".to_string(),
+                email: "amita.yadav@knoldus.in".to_string(),
+            }
+        )
     }
-    )
-    }
-    }
+}

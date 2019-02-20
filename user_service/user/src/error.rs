@@ -24,17 +24,3 @@ impl error::ResponseError for CustomError {
         }
     }
 }
-
-/*#[cfg(test)]
-mod tests {
-    use crate::error::CustomError;
-    use actix_web::{HttpResponse,http};
-
-    #[test]
-    fn test_error_impl() {
-        assert_eq!(
-            CustomError::Timeout,
-            HttpResponse::new(http::StatusCode::GATEWAY_TIMEOUT)
-        )
-    }
-}*/

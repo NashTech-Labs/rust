@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate lazy_static;
+extern crate time;
 
 use actix_web::{http, server, App};
 use listenfd::ListenFd;
@@ -12,7 +13,7 @@ use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
 use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
-use std::time::Duration;
+use time::Duration;
 static INDEX: usize = 0;
 
 lazy_static! {
@@ -55,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
             .middleware(SessionStorage::new(
-                CookieSessionBackend::signed(&[0;32])
+                CookieSessionBackend::private(&[0;32])
                     .secure(false)
             ))
             .resource("/create_user", |r| {

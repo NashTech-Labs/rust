@@ -23,7 +23,8 @@ use futures::Future;
 use std::cell::RefCell;
 use uuid::Uuid;
 use std::error::Error;
-use actix_web::middleware::session::{self, Session, RequestSession};
+use actix_web::middleware::session::{RequestSession, SessionStorage, CookieSessionBackend};
+use actix_web::middleware::session::Session;
 use validator::{Validate, ValidationError};
 
 static INDEX: usize = 0;
@@ -45,18 +46,25 @@ impl UserService for UserInfo {
             Ok(_) => {
                 let new_user_id: String = get_id_by_email(new_user.email.as_str()).to_string();
                 if is_present(&data.session, new_user_id.clone()) {
-                    let initial_user_state: UserState = initial_state();
-                    let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
-                    let user_events: Vec<UserEvent> =
-                        PUser::handle_command(&initial_user_state, create_user_command).unwrap();
-                    let user_state: UserState =
-                        PUser::apply_event(&initial_user_state, user_events[INDEX].clone()).unwrap();
-                    match event_persistent(&data.session, &user_events[INDEX], new_user_id, &user_state) {
-                        Ok(_) => result(Ok(Json(map_user(user_state.user)))).responder(),
-                        Err(_) => result(Err(CustomError::InvalidInput {
-                            field: "Internal Server Error",
-                        }))
-                            .responder(),
+
+                    if let Some(userid) = session.get::<String>("userid").unwrap() {
+                        println!("SESSION value: {}", userid);
+                        let initial_user_state: UserState = initial_state();
+                        let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
+                        let user_events: Vec<UserEvent> =
+                            PUser::handle_command(&initial_user_state, create_user_command).unwrap();
+                        let user_state: UserState =
+                            PUser::apply_event(&initial_user_state, user_events[INDEX].clone()).unwrap();
+                        match event_persistent(&data.session, &user_events[INDEX], new_user_id, &user_state) {
+                            Ok(_) => result(Ok(Json(map_user(user_state.user)))).responder(),
+                            Err(_) => result(Err(CustomError::InvalidInput {
+                                field: "Internal Server Error",
+                            }))
+                                .responder(),
+                        }
+
+                    } else {
+                        result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
                     }
                 } else {
                     result(Err(CustomError::InvalidInput {
@@ -91,6 +99,7 @@ impl UserService for UserInfo {
                 .responder()
         } else {
             if let Some(userid) = session.get::<String>("userid").unwrap() {
+                println!("SESSION value: {}", userid);
                 let user_state: UserState =
                     serde_json::from_str(&user_mapper_list[INDEX].user_state).unwrap();
                 result(Ok(Json(map_user(user_state.user)))).responder()
@@ -115,13 +124,20 @@ impl UserService for UserInfo {
             }))
                 .responder()
         } else {
-            for user in user_mapper {
-                let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
-                user_list.borrow_mut().push(map_user(user_state.user));
-            }
-            let vec_of_user: Vec<User> = user_list.borrow().to_vec();
 
-            result(Ok(Json(wrap_vec(vec_of_user)))).responder()
+            if let Some(userid) = session.get::<String>("userid").unwrap() {
+                for user in user_mapper {
+                    let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
+                    user_list.borrow_mut().push(map_user(user_state.user));
+                }
+                let vec_of_user: Vec<User> = user_list.borrow().to_vec();
+
+                result(Ok(Json(wrap_vec(vec_of_user)))).responder()
+            } else {
+                result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
+            }
+
+
         }
     }
 
@@ -144,11 +160,24 @@ impl UserService for UserInfo {
                         .responder()
                 } else {
 
-                    if let Some(userid) = session.get::<String>("userid").unwrap() {
+                   // session.remove("userid");
+
+                   // session_staus(&session);
+
+                   /* if let Some(userid) = session.get::<String>("userid").unwrap() {
                         println!("SESSION value: {}", userid);
                         session.set("userid", user_id.to_owned()).unwrap();
                     } else {
                         session.set("userid", user_id.to_owned()).unwrap();
+                        println!("SESSION value-----------: {:?}", session.get::<String>("userid").unwrap());
+                    }*/
+                    println!("hello");
+                    if let Some(count) = session.get::<i32>("counter").unwrap() {
+                        println!("SESSION value: {}", count);
+                        session.set("counter", count+1).unwrap();
+                    } else {
+                        session.set("counter", 1).unwrap();
+                        println!("hi");
                     }
 
                     let user_state: UserState =
@@ -174,7 +203,16 @@ impl UserService for UserInfo {
     }
 }
 
+fn session_staus(session:&Session) {
+    if let Some(count) = session.to_owned().get::<i32>("counter").unwrap() {
+        println!("SESSION value: {}", count);
+        session.to_owned().set("counter", count+1).unwrap();
+    } else {
+        session.set("counter", 1).unwrap();
+        println!("SESSION value: 1");
 
+    }
+}
 
 /*if let Some(count) = session.get::<i32>("counter").unwrap() {
                   println!("SESSION value: {}", count);

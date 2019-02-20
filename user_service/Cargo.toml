@@ -18,3 +18,4 @@ lazy_static = "1.2.0"
 user = {path ="../user_service/user"}
 cdrs = "2.0.0-beta.4"
 cdrs_helpers_derive = "0.2.0"
+time = "0.1.42"

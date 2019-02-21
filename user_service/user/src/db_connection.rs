@@ -3,7 +3,7 @@ use cdrs::cluster::{ClusterTcpConfig, NodeTcpConfig, NodeTcpConfigBuilder, TcpCo
 use cdrs::load_balancing::RoundRobin;
 use cdrs::authenticators::NoneAuthenticator;
 
-static DATABASE_PORT_ADDRESS: &str = "127.0.0.1:9042";
+const DATABASE_PORT_ADDRESS: &str = "127.0.0.1:9042";
 
 ///creating a custom type of Current Session type
 pub type CurrentSession = Session<RoundRobin<TcpConnectionPool<NoneAuthenticator>>>;

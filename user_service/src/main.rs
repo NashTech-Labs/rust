@@ -11,9 +11,7 @@ use config::Config;
 use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
-use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
-
-static INDEX: usize = 0;
+use user::constants::INDEX;
 
 lazy_static! {
 	static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
@@ -54,10 +52,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
-            .middleware(SessionStorage::new(
-                CookieSessionBackend::signed(&[0;32])
-                    .secure(false)
-            ))
             .resource("/create_user", |r| {
                 r.method(http::Method::POST).with_async(UserInfo::create_user)
             })

@@ -1,17 +1,6 @@
 use cdrs::query::QueryExecutor;
 use crate::db_connection::CurrentSession;
-
-static KEYSPACE_QUERY: &str =
-    "CREATE KEYSPACE IF NOT EXISTS user_event_sourcing_ks WITH REPLICATION = {\
-     'class' : 'SimpleStrategy', 'replication_factor' : 1 };";
-
-static EVENT_TABLE_QUERY: &str =
-    "CREATE TABLE IF NOT EXISTS user_event_sourcing_ks.user_events\
-     (user_id text PRIMARY KEY , user_event text);";
-
-static STATE_TABLE_QUERY: &str =
-    "CREATE TABLE IF NOT EXISTS user_event_sourcing_ks.user_states \
-     (user_id text PRIMARY KEY ,user_state text);";
+use crate::constants::{KEYSPACE_QUERY, EVENT_TABLE_QUERY,STATE_TABLE_QUERY};
 
 /// create_keyspace takes Current Session and keyspace_name
 /// * and creates a keyspace in database and return string

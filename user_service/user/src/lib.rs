@@ -31,3 +31,5 @@ pub mod model;
 pub mod utility;
 
 pub mod db_connection;
+
+pub mod constants;

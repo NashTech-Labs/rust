@@ -12,7 +12,7 @@ use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
 use crate::user_service_impl::eventsourcing::user_repository::is_present;
 use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
 use crate::user_service_impl::eventsourcing::user_repository::get_user;
-use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
+use crate::user_service_impl::eventsourcing::user_repository::UserInfo;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
 use crate::utility::wrap_vec;
 use crate::utility::Outcomes;
@@ -25,9 +25,9 @@ use uuid::Uuid;
 use validator::Validate;
 use crate::constants::INDEX;
 
-pub struct UserInfo;
+pub struct UserHandler;
 
-impl UserService for UserInfo {
+impl UserService for UserHandler {
     /// create_user is a method which takes struct of UserRegistration and AppState
     /// returns Result<Json<User>> in case of success and in case of failure,
     /// it will return CustomError
@@ -78,15 +78,15 @@ impl UserService for UserInfo {
         data: State<AppState>,
         user_id: Path<String>,
     ) -> Box<Future<Item=Json<User>, Error=CustomError>> {
-        let user_mapper_list: Vec<UserMapper> = get_user(&data.session, user_id.into_inner()).wait().unwrap();
-        if user_mapper_list.is_empty() {
+        let users_detail: Vec<UserInfo> = get_user(&data.session, user_id.into_inner()).wait().unwrap();
+        if users_detail.is_empty() {
             result(Err(CustomError::InvalidInput {
                 field: "user with this id doesn't exist",
             }))
                 .responder()
         } else {
             let user_state: UserState =
-                serde_json::from_str(&user_mapper_list[INDEX].user_state).unwrap();
+                serde_json::from_str(&users_detail[INDEX].user_state).unwrap();
             result(Ok(Json(map_user(user_state.user)))).responder()
         }
     }
@@ -98,20 +98,20 @@ impl UserService for UserInfo {
         data: State<AppState>,
     ) -> Box<Future<Item=Json<Outcomes<User>>, Error=CustomError>> {
         let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
-        let user_mappers: Vec<UserMapper> = get_all_user(&data.session).wait().unwrap();
-        if user_mappers.is_empty() {
+        let user_info: Vec<UserInfo> = get_all_user(&data.session).wait().unwrap();
+        if user_info.is_empty() {
             result(Err(CustomError::InternalError {
                 field: "error in getting all users",
             }))
                 .responder()
         } else {
-            for user in user_mappers {
+            for user in user_info {
                 let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
                 user_list.borrow_mut().push(map_user(user_state.user));
             }
-            let vec_of_user: Vec<User> = user_list.borrow().to_vec();
+            let users: Vec<User> = user_list.borrow().to_vec();
 
-            result(Ok(Json(wrap_vec(vec_of_user)))).responder()
+            result(Ok(Json(wrap_vec(users)))).responder()
         }
     }
 
@@ -125,7 +125,7 @@ impl UserService for UserInfo {
             Ok(_) => {
                 let user_email: String = u_login.email;
                 let user_id: String = get_id_by_email(user_email.as_str()).to_string();
-                let user_status: Vec<UserMapper> = get_user(&data.session, user_id.clone()).wait().unwrap();
+                let user_status: Vec<UserInfo> = get_user(&data.session, user_id.clone()).wait().unwrap();
                 if user_status.is_empty() {
                     result(Err(CustomError::InvalidInput {
                         field: "user not found",

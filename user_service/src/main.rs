@@ -12,7 +12,7 @@ use config::Config;
 use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
-use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
+use actix_web::middleware::session::{CookieSessionBackend, SessionStorage};
 use time::Duration;
 static INDEX: usize = 0;
 
@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
             .middleware(SessionStorage::new(
-                CookieSessionBackend::private(&[0;32])
+                CookieSessionBackend::signed(&[0;32])
                     .secure(false)
             ))
             .resource("/create_user", |r| {

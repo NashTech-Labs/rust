@@ -46,10 +46,11 @@ impl UserService for UserInfo {
             Ok(_) => {
                 let new_user_id: String = get_id_by_email(new_user.email.as_str()).to_string();
                 if is_present(&data.session, new_user_id.clone()) {
-
-                    if let Some(userid) = session.get::<String>("userid").unwrap() {
-                        println!("SESSION value: {}", userid);
                         let initial_user_state: UserState = initial_state();
+                        let user_id:String = get_id_by_email(&initial_user_state.user.email).to_string();
+
+                        session.set("userid",user_id);
+
                         let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
                         let user_events: Vec<UserEvent> =
                             PUser::handle_command(&initial_user_state, create_user_command).unwrap();
@@ -63,9 +64,7 @@ impl UserService for UserInfo {
                                 .responder(),
                         }
 
-                    } else {
-                        result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
-                    }
+
                 } else {
                     result(Err(CustomError::InvalidInput {
                         field: "user with this state already exist",
@@ -160,25 +159,25 @@ impl UserService for UserInfo {
                         .responder()
                 } else {
 
-                   // session.remove("userid");
-
-                   // session_staus(&session);
-
-                   /* if let Some(userid) = session.get::<String>("userid").unwrap() {
+                  //  session.set("userid", user_id.to_owned()).unwrap();
+                 //   println!("SESSION value: {}", userid);
+                    if let Some(userid) = session.get::<String>("userid").unwrap() {
                         println!("SESSION value: {}", userid);
                         session.set("userid", user_id.to_owned()).unwrap();
                     } else {
                         session.set("userid", user_id.to_owned()).unwrap();
                         println!("SESSION value-----------: {:?}", session.get::<String>("userid").unwrap());
-                    }*/
-                    println!("hello");
+                    }
+                       //  println!("{:?}",session.try_into());
+
+                   /* println!("hello");
                     if let Some(count) = session.get::<i32>("counter").unwrap() {
                         println!("SESSION value: {}", count);
                         session.set("counter", count+1).unwrap();
                     } else {
                         session.set("counter", 1).unwrap();
                         println!("hi");
-                    }
+                    }*/
 
                     let user_state: UserState =
                         serde_json::from_str(&user_status[INDEX].user_state).unwrap();
@@ -200,17 +199,6 @@ impl UserService for UserInfo {
                     .responder()
             }
         }
-    }
-}
-
-fn session_staus(session:&Session) {
-    if let Some(count) = session.to_owned().get::<i32>("counter").unwrap() {
-        println!("SESSION value: {}", count);
-        session.to_owned().set("counter", count+1).unwrap();
-    } else {
-        session.set("counter", 1).unwrap();
-        println!("SESSION value: 1");
-
     }
 }
 

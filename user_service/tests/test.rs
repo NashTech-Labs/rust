@@ -6,23 +6,24 @@ use actix_web::client::ClientRequest;
 use actix_web::test::TestServer;
 use actix_web::{client::ClientResponse, HttpMessage};
 use actix_web::{http, test, App};
+use cdrs::query::QueryExecutor;
 use serde_json::Value;
 use std::str;
+use user::db_connection::connect;
 use user::model::UserLogin;
 use user::model::UserRegistration;
 use user::user_service_api::user_service::AppState;
-use user::db_connection::connect;
-use user::user_service_impl::handler::UserInfo;
 use user::user_service_api::user_service::UserService;
-use cdrs::query::QueryExecutor;
 use user::user_service_impl::env_setup::initializer;
+use user::user_service_impl::handler::UserInfo;
 
-#[test]
+#[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
     initializer(&connect());
     App::with_state(AppState { session: connect() })
         .resource("/create_user", |r| {
-            r.method(http::Method::POST).with_async(UserInfo::create_user)
+            r.method(http::Method::POST)
+                .with_async(UserInfo::create_user)
         })
         .resource("/login", |r| {
             r.method(http::Method::POST)
@@ -32,7 +33,8 @@ fn create_app() -> App<AppState> {
             r.method(http::Method::GET).with_async(UserInfo::get_user)
         })
         .resource("/get_users", |r| {
-            r.method(http::Method::GET).with_async(UserInfo::get_all_users)
+            r.method(http::Method::GET)
+                .with_async(UserInfo::get_all_users)
         })
 }
 

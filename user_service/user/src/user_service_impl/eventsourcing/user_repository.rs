@@ -1,8 +1,6 @@
 use crate::error::CustomError;
 use crate::user_service_impl::eventsourcing::user_event::UserEvent;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
-use actix_web::http;
-use actix_web::HttpResponse;
 use actix_web::Result;
 use cdrs::frame::Frame;
 use cdrs::frame::IntoBytes;
@@ -12,19 +10,9 @@ use cdrs::types::from_cdrs::FromCDRSByName;
 use cdrs::{self, types::prelude::*};
 use std::cell::RefCell;
 use crate::db_connection::CurrentSession;
-
-static USER_EVENT_STORE_QUERY: &str =
-    "INSERT INTO user_event_sourcing_ks.user_events (user_id,user_event) \
-     VALUES (?,?)";
-
-static USER_STATE_STORE_QUERY: &str =
-    "INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
-     VALUES (?,?)";
-
-static SELECT_QUERY: &str =
-    "SELECT * FROM user_event_sourcing_ks.user_states WHERE user_id = ? ";
-
-static SELECT_ALL_QUERY: &str = "SELECT * FROM user_event_sourcing_ks.user_states";
+use crate::constants::{USER_STATE_STORE_QUERY, USER_EVENT_STORE_QUERY, SELECT_QUERY, SELECT_ALL_QUERY};
+use futures::future::{ok,err};
+use futures::Future;
 
 /// UserMapper is used to map the details at retrieval time
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, IntoCDRSValue, TryFromRow)]
@@ -39,7 +27,7 @@ pub fn event_persistent(
     new_user: &UserEvent,
     user_id: String,
     user_state: &UserState,
-) -> Result<&'static str, CustomError> {
+) -> impl Future<Item = &'static str, Error= CustomError> {
     let user_json: String = serde_json::to_string(&new_user).unwrap();
     session
         .query_with_values(
@@ -47,41 +35,31 @@ pub fn event_persistent(
             query_values!(user_id.clone(), user_json),
         )
         .expect("insert error");
-    let status: HttpResponse = match state_persistent(&session, &user_state, user_id) {
-        Ok(_) => HttpResponse::new(http::StatusCode::OK),
-        Err(_) => HttpResponse::new(http::StatusCode::INTERNAL_SERVER_ERROR),
-    };
-    if status.status().is_success() {
-        Ok("successfully event stored")
-    } else {
-        Err(CustomError::InternalError {
-            field: "error in event persistent",
-        })
-    }
+    state_persistent(&session, &user_state, user_id)
 }
 
 /// state_persistent is used to store the states against a particular user
-pub fn state_persistent<'a, 'b>(
-    session: &'a CurrentSession,
-    new_user: &'b UserState,
+fn state_persistent(
+    session: &CurrentSession,
+    new_user: &UserState,
     user_id: String,
-) -> Result<&'static str, CustomError> {
-    let user_state_json: String = serde_json::to_string(&new_user).unwrap();
+) -> impl Future<Item = &'static str, Error= CustomError> {
+    let user_state: String = serde_json::to_string(&new_user).unwrap();
     let query_status: Result<Frame, Error> = session.query_with_values(
         USER_STATE_STORE_QUERY,
-        query_values!(user_id, user_state_json),
+        query_values!(user_id, user_state),
     );
     if query_status.is_ok() {
-        Ok("successfully state stored")
+        ok("successfully state stored")
     } else {
-        Err(CustomError::InternalError {
+        err(CustomError::InternalError {
             field: "error in state persistent",
         })
     }
 }
 
 /// select_user is used to retrieve a user detail based on user_id
-pub fn get_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
+pub fn get_user(session: &CurrentSession, user_id: String) -> impl Future<Item=Vec<UserMapper>, Error=()> {
     let user_state_rows: Vec<Row> = session
         .query_with_values(SELECT_QUERY, query_values!(user_id))
         .expect("is_select error")
@@ -90,18 +68,18 @@ pub fn get_user(session: &CurrentSession, user_id: String) -> Vec<UserMapper> {
         .into_rows()
         .expect("into rows");
 
-    let get_user_list: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
+    let users: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
     for row in user_state_rows {
-        get_user_list
+        users
             .borrow_mut()
             .push(UserMapper::try_from_row(row).expect("into get user"));
     }
-    let result: Vec<UserMapper> = get_user_list.borrow().to_vec();
-    result
+    let user_mappers: Vec<UserMapper> = users.borrow().to_vec();
+    ok(user_mappers)
 }
 
 /// select_all_user is used to retrieve list of all users' details
-pub fn get_all_user(session: &CurrentSession) -> Vec<UserMapper> {
+pub fn get_all_user(session: &CurrentSession) -> impl Future<Item=Vec<UserMapper>, Error=()> {
     let user_state_rows: Vec<Row> = session
         .query(SELECT_ALL_QUERY)
         .expect("is_select_all error")
@@ -110,26 +88,26 @@ pub fn get_all_user(session: &CurrentSession) -> Vec<UserMapper> {
         .into_rows()
         .expect("into rows");
 
-    let get_user_list: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
+    let get_users: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
     for row in user_state_rows {
-        get_user_list
+        get_users
             .borrow_mut()
             .push(UserMapper::try_from_row(row).expect("into get user"));
     }
-    let result: Vec<UserMapper> = get_user_list.borrow().to_vec();
-    result
+    let user_mappers: Vec<UserMapper> = get_users.borrow().to_vec();
+    ok(user_mappers)
 }
 
 /// is_present is used to check whether a particular user's state is exists in database or not
-pub fn is_present(session: &CurrentSession, id: String) -> bool {
-    session
+pub fn is_present(session: &CurrentSession, id: String) -> impl Future<Item=bool, Error=()> {
+    ok(session
         .query_with_values(SELECT_QUERY, query_values!(id))
         .expect("isPresent error")
         .get_body()
         .expect("get body")
         .into_rows()
         .expect("into rows")
-        .is_empty()
+        .is_empty())
 }
 
 #[cfg(test)]
@@ -147,6 +125,7 @@ mod tests {
     use crate::user_service_impl::env_setup::initializer;
     use crate::db_connection::CurrentSession;
     use cdrs::query::QueryExecutor;
+    use futures::future::Future;
 
     #[test]
     fn test_state_persistent() {
@@ -166,7 +145,7 @@ mod tests {
                 &connect(),
                 &user_state,
                 "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
-            ),
+            ).wait(),
             Ok("successfully state stored")
         );
         session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")
@@ -194,7 +173,7 @@ mod tests {
             get_user(
                 &connect(),
                 "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
-            ),
+            ).wait().unwrap(),
             user_detail
         );
         session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")
@@ -215,7 +194,7 @@ mod tests {
         session.query_with_values("INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
      VALUES (?,?)", query_values!(user_mapper.user_id,user_mapper.user_state))
             .expect("Insert Error in Select_user test");
-        assert_ne!(get_all_user(&connect()).len(), 0);
+        assert_ne!(get_all_user(&connect()).wait().unwrap().len(), 0);
         session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")
             .expect("Deletion error in  Select_user test");
     }
@@ -226,7 +205,7 @@ mod tests {
         assert!(get_user(
             &connect(),
             "yc6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
-        )
+        ).wait().unwrap()
             .is_empty())
     }
 
@@ -238,7 +217,7 @@ mod tests {
             is_present(
                 &session,
                 "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
-            ),
+            ).wait().unwrap(),
             false
         )
     }
@@ -264,8 +243,8 @@ mod tests {
                 &user_event,
                 "f95dfd0b-e2fa-5b88-a284-578f9a015f4d".to_string(),
                 &user_state,
-            ),
-            Ok("successfully event stored")
+            ).wait(),
+            Ok("successfully state stored")
         );
         session.query("DELETE from user_event_sourcing_ks.user_events WHERE user_id = 'f95dfd0b-e2fa-5b88-a284-578f9a015f4d'")
             .expect("Deletion error in event persistent test");

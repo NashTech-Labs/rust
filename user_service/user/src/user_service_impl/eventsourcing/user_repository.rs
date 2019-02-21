@@ -16,7 +16,7 @@ use futures::Future;
 
 /// UserMapper is used to map the details at retrieval time
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, IntoCDRSValue, TryFromRow)]
-pub struct UserMapper {
+pub struct UserInfo {
     pub user_id: String,
     pub user_state: String,
 }
@@ -28,11 +28,11 @@ pub fn event_persistent(
     user_id: String,
     user_state: &UserState,
 ) -> impl Future<Item = &'static str, Error= CustomError> {
-    let user_json: String = serde_json::to_string(&new_user).unwrap();
+    let user: String = serde_json::to_string(&new_user).unwrap();
     session
         .query_with_values(
             USER_EVENT_STORE_QUERY,
-            query_values!(user_id.clone(), user_json),
+            query_values!(user_id.clone(), user),
         )
         .expect("insert error");
     state_persistent(&session, &user_state, user_id)
@@ -59,7 +59,7 @@ fn state_persistent(
 }
 
 /// select_user is used to retrieve a user detail based on user_id
-pub fn get_user(session: &CurrentSession, user_id: String) -> impl Future<Item=Vec<UserMapper>, Error=()> {
+pub fn get_user(session: &CurrentSession, user_id: String) -> impl Future<Item=Vec<UserInfo>, Error=()> {
     let user_state_rows: Vec<Row> = session
         .query_with_values(SELECT_QUERY, query_values!(user_id))
         .expect("is_select error")
@@ -68,18 +68,18 @@ pub fn get_user(session: &CurrentSession, user_id: String) -> impl Future<Item=V
         .into_rows()
         .expect("into rows");
 
-    let users: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
+    let users: RefCell<Vec<UserInfo>> = RefCell::new(vec![]);
     for row in user_state_rows {
         users
             .borrow_mut()
-            .push(UserMapper::try_from_row(row).expect("into get user"));
+            .push(UserInfo::try_from_row(row).expect("into get user"));
     }
-    let user_mappers: Vec<UserMapper> = users.borrow().to_vec();
+    let user_mappers: Vec<UserInfo> = users.borrow().to_vec();
     ok(user_mappers)
 }
 
 /// select_all_user is used to retrieve list of all users' details
-pub fn get_all_user(session: &CurrentSession) -> impl Future<Item=Vec<UserMapper>, Error=()> {
+pub fn get_all_user(session: &CurrentSession) -> impl Future<Item=Vec<UserInfo>, Error=()> {
     let user_state_rows: Vec<Row> = session
         .query(SELECT_ALL_QUERY)
         .expect("is_select_all error")
@@ -88,14 +88,14 @@ pub fn get_all_user(session: &CurrentSession) -> impl Future<Item=Vec<UserMapper
         .into_rows()
         .expect("into rows");
 
-    let get_users: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
+    let users: RefCell<Vec<UserInfo>> = RefCell::new(vec![]);
     for row in user_state_rows {
-        get_users
+        users
             .borrow_mut()
-            .push(UserMapper::try_from_row(row).expect("into get user"));
+            .push(UserInfo::try_from_row(row).expect("into get user"));
     }
-    let user_mappers: Vec<UserMapper> = get_users.borrow().to_vec();
-    ok(user_mappers)
+    let user_info: Vec<UserInfo> = users.borrow().to_vec();
+    ok(user_info)
 }
 
 /// is_present is used to check whether a particular user's state is exists in database or not
@@ -115,7 +115,7 @@ mod tests {
     use crate::db_connection::connect;
     use crate::user_service_impl::eventsourcing::user_state::UserState;
     use crate::user_service_impl::eventsourcing::user_repository::state_persistent;
-    use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
+    use crate::user_service_impl::eventsourcing::user_repository::UserInfo;
     use crate::user_service_impl::eventsourcing::user_repository::get_user;
     use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
     use crate::user_service_impl::eventsourcing::user_repository::is_present;
@@ -156,16 +156,16 @@ mod tests {
     fn test_get_user() {
         let session: CurrentSession = connect();
         initializer(&session);
-        let user_mapper: UserMapper = UserMapper {
+        let user_info: UserInfo = UserInfo {
             user_id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
             user_state:
             "{\"user\":{\"id\":\"c6fd1799-b363-57f5-a4f5-6bfc12cef619\",\"name\":\"shikha\",\
              \"email\":\"shikha97887@gmail.com\",\"password\":\"shikha123\"},\"generation\":1}"
                 .to_string(),
         };
-        let user_detail: Vec<UserMapper> = vec![user_mapper.clone()];
+        let user_detail: Vec<UserInfo> = vec![user_info.clone()];
         session.query_with_values("INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
-     VALUES (?,?)", query_values!(user_mapper.user_id,user_mapper.user_state))
+     VALUES (?,?)", query_values!(user_info.user_id,user_info.user_state))
             .expect("Insert Error in Select_user test");
 
 
@@ -184,7 +184,7 @@ mod tests {
     fn test_get_all_user() {
         let session: CurrentSession = connect();
         initializer(&session);
-        let user_mapper: UserMapper = UserMapper {
+        let user_info: UserInfo = UserInfo {
             user_id: "c6fd1799-b363-57f5-a4f5-6bfc12cef619".to_string(),
             user_state:
             "{\"user\":{\"id\":\"c6fd1799-b363-57f5-a4f5-6bfc12cef619\",\"name\":\"shikha\",\
@@ -192,7 +192,7 @@ mod tests {
                 .to_string(),
         };
         session.query_with_values("INSERT INTO user_event_sourcing_ks.user_states (user_id,user_state) \
-     VALUES (?,?)", query_values!(user_mapper.user_id,user_mapper.user_state))
+     VALUES (?,?)", query_values!(user_info.user_id,user_info.user_state))
             .expect("Insert Error in Select_user test");
         assert_ne!(get_all_user(&connect()).wait().unwrap().len(), 0);
         session.query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'c6fd1799-b363-57f5-a4f5-6bfc12cef619'")

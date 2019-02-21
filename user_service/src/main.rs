@@ -11,7 +11,7 @@ use user::db_connection::connect;
 use user::user_service_api::user_service::AppState;
 use user::user_service_api::user_service::UserService;
 use user::user_service_impl::env_setup::initializer;
-use user::user_service_impl::handler::UserInfo;
+use user::user_service_impl::handler::UserHandler;
 
 lazy_static! {
     static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
@@ -62,18 +62,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         App::with_state(AppState { session: connect() })
             .resource("/create_user", |r| {
                 r.method(http::Method::POST)
-                    .with_async(UserInfo::create_user)
+                    .with_async(UserHandler::create_user)
             })
             .resource("/login", |r| {
                 r.method(http::Method::POST)
-                    .with_async(UserInfo::user_login)
+                    .with_async(UserHandler::user_login)
             })
             .resource("/get_user/{user_id}", |r| {
-                r.method(http::Method::GET).with_async(UserInfo::get_user)
+                r.method(http::Method::GET).with_async(UserHandler::get_user)
             })
             .resource("/get_users", |r| {
                 r.method(http::Method::GET)
-                    .with_async(UserInfo::get_all_users)
+                    .with_async(UserHandler::get_all_users)
             })
     });
     server = if let Some(listen) = listenfd.take_tcp_listener(INDEX).unwrap() {

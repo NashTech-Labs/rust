@@ -17,7 +17,7 @@ mod tests {
 
     #[test]
     fn test_wrap_vec() {
-        let users: Vec<User> = vec![
+        let user_list: Vec<User> = vec![
             User {
                 id: "101".to_string(),
                 name: "sanjay".to_string(),
@@ -30,9 +30,9 @@ mod tests {
             },
         ];
         let outcomes: Outcomes<User> = Outcomes {
-            outcomes: users.clone(),
+            outcomes: user_list.clone(),
         };
 
-        assert_eq!(wrap_vec(users), outcomes);
+        assert_eq!(wrap_vec(user_list), outcomes);
     }
 }

@@ -11,13 +11,14 @@ use config::Config;
 use user::db_connection::connect;
 use std::error::Error;
 use std::sync::RwLock;
-use user::constants::INDEX;
+use actix_web::middleware::session::{SessionStorage,CookieSessionBackend};
+
+static INDEX: usize = 0;
 
 lazy_static! {
 	static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
 }
 
-#[derive(Debug, PartialEq)]
 struct ConfigSetting {
     debug_level_key: String,
     debug_level_value: String,
@@ -53,6 +54,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut listenfd: ListenFd = ListenFd::from_env();
     let mut server = server::new(|| {
         App::with_state(AppState { session: connect() })
+            .middleware(SessionStorage::new(
+                CookieSessionBackend::signed(&[0;32])
+                    .secure(false)
+            ))
             .resource("/create_user", |r| {
                 r.method(http::Method::POST).with_async(UserInfo::create_user)
             })
@@ -74,18 +79,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     server.run();
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::ConfigSetting;
-
-    #[test]
-    fn test_config_setting() {
-        assert_eq!(ConfigSetting::new().unwrap(),ConfigSetting {
-            debug_level_key: "RUST_LOG".to_string(),
-            debug_level_value: "actix_web=debug".to_string(),
-            server_bind_port: "127.0.0.1:3080".to_string()
-        })
-    }
 }

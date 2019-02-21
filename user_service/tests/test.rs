@@ -17,17 +17,14 @@ use user::user_service_api::user_service::UserService;
 use cdrs::query::QueryExecutor;
 use user::user_service_impl::env_setup::initializer;
 
-#[test]
+#[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
     initializer(&connect());
     App::with_state(AppState { session: connect() })
         .resource("/create_user", |r| {
-            r.method(http::Method::POST).with_async(UserInfo::create_user)
-        })
-        .resource("/login", |r| {
-            r.method(http::Method::POST)
-                .with_async(UserInfo::user_login)
-        })
+            r.method(http::Method::POST).with_async(UserInfo::create_user)})
+        .resource("/login", |r|{ r.method(http::Method::POST)
+            .with_async(UserInfo::user_login)})
         .resource("/get_user/{user_id}", |r| {
             r.method(http::Method::GET).with_async(UserInfo::get_user)
         })
@@ -87,24 +84,8 @@ fn test_insert_not_first_time() {
     let response: ClientResponse = server.execute(request.send()).unwrap();
 
     assert!(response.status().is_client_error());
-}
-
-#[test]
-fn test_insert_invalid_input() {
-    let user_reg: UserRegistration = UserRegistration {
-        name: "".to_string(),
-        email: "sid@gmail.com".to_string(),
-        password: "sid123@".to_string(),
-    };
-    let mut server: TestServer = test::TestServer::with_factory(create_app);
-
-    let request: ClientRequest = server
-        .client(http::Method::POST, "/create_user")
-        .json(user_reg.clone())
-        .unwrap();
-    let response: ClientResponse = server.execute(request.send()).unwrap();
-
-    assert!(response.status().is_client_error());
+    connect().query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'a9c8536e-75ee-582b-a145-b6ace45abe9d'")
+        .expect("Deletion error in insert handler test");
 }
 
 #[test]
@@ -187,22 +168,6 @@ fn test_display_by_wrong_id() {
 fn test_user_login_not_exist() {
     let user_login: UserLogin = UserLogin {
         email: "rahul@gmail.com".to_string(),
-        password: "rsb007@".to_string(),
-    };
-    let mut server: TestServer = test::TestServer::with_factory(create_app);
-
-    let request: ClientRequest = server
-        .client(http::Method::POST, "/login")
-        .json(user_login)
-        .unwrap();
-    let response: ClientResponse = server.execute(request.send()).unwrap();
-    assert!(response.status().is_client_error());
-}
-
-#[test]
-fn test_user_login_invalid_input() {
-    let user_login: UserLogin = UserLogin {
-        email: "rahulgmail.com".to_string(),
         password: "rsb007@".to_string(),
     };
     let mut server: TestServer = test::TestServer::with_factory(create_app);

@@ -22,8 +22,11 @@ use futures::future::result;
 use futures::Future;
 use std::cell::RefCell;
 use uuid::Uuid;
-use validator::Validate;
-use crate::constants::INDEX;
+use std::error::Error;
+use actix_web::middleware::session::{self, Session, RequestSession};
+use validator::{Validate, ValidationError};
+
+static INDEX: usize = 0;
 
 pub struct UserInfo;
 
@@ -35,19 +38,20 @@ impl UserService for UserInfo {
     fn create_user(
         data: State<AppState>,
         user_reg: Json<UserRegistration>,
+        session: Session,
     ) -> Box<Future<Item=Json<User>, Error=CustomError>> {
         let new_user: UserRegistration = user_reg.into_inner();
         match new_user.validate() {
             Ok(_) => {
                 let new_user_id: String = get_id_by_email(new_user.email.as_str()).to_string();
-                if is_present(&data.session, new_user_id.clone()).wait().unwrap() {
+                if is_present(&data.session, new_user_id.clone()) {
                     let initial_user_state: UserState = initial_state();
                     let create_user_command: UserCommand = UserCommand::CreateUser(new_user);
                     let user_events: Vec<UserEvent> =
                         PUser::handle_command(&initial_user_state, create_user_command).unwrap();
                     let user_state: UserState =
                         PUser::apply_event(&initial_user_state, user_events[INDEX].clone()).unwrap();
-                    match event_persistent(&data.session, &user_events[INDEX], new_user_id, &user_state).wait() {
+                    match event_persistent(&data.session, &user_events[INDEX], new_user_id, &user_state) {
                         Ok(_) => result(Ok(Json(map_user(user_state.user)))).responder(),
                         Err(_) => result(Err(CustomError::InvalidInput {
                             field: "Internal Server Error",
@@ -77,8 +81,9 @@ impl UserService for UserInfo {
     fn get_user(
         data: State<AppState>,
         user_id: Path<String>,
+        session: Session,
     ) -> Box<Future<Item=Json<User>, Error=CustomError>> {
-        let user_mapper_list: Vec<UserMapper> = get_user(&data.session, user_id.into_inner()).wait().unwrap();
+        let user_mapper_list: Vec<UserMapper> = get_user(&data.session, user_id.into_inner());
         if user_mapper_list.is_empty() {
             result(Err(CustomError::InvalidInput {
                 field: "user with this id doesn't exist",
@@ -96,16 +101,17 @@ impl UserService for UserInfo {
     /// get_all_users is used to retrieve list of all user's details
     fn get_all_users(
         data: State<AppState>,
+        session: Session,
     ) -> Box<Future<Item=Json<Outcomes<User>>, Error=CustomError>> {
+        let user_mapper: Vec<UserMapper> = get_all_user(&data.session);
         let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
-        let user_mappers: Vec<UserMapper> = get_all_user(&data.session).wait().unwrap();
-        if user_mappers.is_empty() {
+        if user_mapper.is_empty() {
             result(Err(CustomError::InternalError {
                 field: "error in getting all users",
             }))
                 .responder()
         } else {
-            for user in user_mappers {
+            for user in user_mapper {
                 let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
                 user_list.borrow_mut().push(map_user(user_state.user));
             }
@@ -119,13 +125,14 @@ impl UserService for UserInfo {
     fn user_login(
         data: State<AppState>,
         user_login: Json<UserLogin>,
+        session: Session,
     ) -> Box<Future<Item=String, Error=CustomError>> {
         let u_login: UserLogin = user_login.into_inner();
         match u_login.validate() {
             Ok(_) => {
                 let user_email: String = u_login.email;
                 let user_id: String = get_id_by_email(user_email.as_str()).to_string();
-                let user_status: Vec<UserMapper> = get_user(&data.session, user_id.clone()).wait().unwrap();
+                let user_status: Vec<UserMapper> = get_user(&data.session, user_id.clone());
                 if user_status.is_empty() {
                     result(Err(CustomError::InvalidInput {
                         field: "user not found",

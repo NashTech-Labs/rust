@@ -17,6 +17,7 @@ lazy_static! {
 	static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());
 }
 
+#[derive(Debug, PartialEq)]
 struct ConfigSetting {
     debug_level_key: String,
     debug_level_value: String,
@@ -73,4 +74,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     server.run();
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::ConfigSetting;
+
+    #[test]
+    fn test_config_setting() {
+        assert_eq!(ConfigSetting::new().unwrap(),ConfigSetting {
+            debug_level_key: "RUST_LOG".to_string(),
+            debug_level_value: "actix_web=debug".to_string(),
+            server_bind_port: "127.0.0.1:3080".to_string()
+        })
+    }
 }

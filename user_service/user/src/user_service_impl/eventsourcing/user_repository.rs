@@ -44,10 +44,10 @@ fn state_persistent(
     new_user: &UserState,
     user_id: String,
 ) -> impl Future<Item = &'static str, Error= CustomError> {
-    let user_state_json: String = serde_json::to_string(&new_user).unwrap();
+    let user_state: String = serde_json::to_string(&new_user).unwrap();
     let query_status: Result<Frame, Error> = session.query_with_values(
         USER_STATE_STORE_QUERY,
-        query_values!(user_id, user_state_json),
+        query_values!(user_id, user_state),
     );
     if query_status.is_ok() {
         ok("successfully state stored")
@@ -68,13 +68,13 @@ pub fn get_user(session: &CurrentSession, user_id: String) -> impl Future<Item=V
         .into_rows()
         .expect("into rows");
 
-    let get_user_list: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
+    let users: RefCell<Vec<UserMapper>> = RefCell::new(vec![]);
     for row in user_state_rows {
-        get_user_list
+        users
             .borrow_mut()
             .push(UserMapper::try_from_row(row).expect("into get user"));
     }
-    let user_mappers: Vec<UserMapper> = get_user_list.borrow().to_vec();
+    let user_mappers: Vec<UserMapper> = users.borrow().to_vec();
     ok(user_mappers)
 }
 

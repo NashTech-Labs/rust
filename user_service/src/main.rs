@@ -1,17 +1,18 @@
 #[macro_use]
 extern crate lazy_static;
+extern crate user_service;
 
 use actix_web::{http, server, App};
 use config::Config;
 use listenfd::ListenFd;
 use std::error::Error;
 use std::sync::RwLock;
-use user::constants::INDEX;
-use user::db_connection::connect;
-use user::user_service_api::user_service::AppState;
-use user::user_service_api::user_service::UserService;
-use user::user_service_impl::env_setup::initializer;
-use user::user_service_impl::handler::UserHandler;
+use crate::user_service::constants::INDEX;
+use crate::user_service::db_connection::connect;
+use crate::user_service::user_service_api::user_service::AppState;
+use crate::user_service::user_service_api::user_service::UserService;
+use crate::user_service::user_service_impl::env_setup::initializer;
+use crate::user_service::user_service_impl::handler::UserHandler;
 
 lazy_static! {
     static ref SETTINGS: RwLock<Config> = RwLock::new(Config::default());

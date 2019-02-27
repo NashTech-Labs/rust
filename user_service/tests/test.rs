@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate serde_json;
-extern crate cdrs;
 
 use actix_web::client::ClientRequest;
 use actix_web::test::TestServer;
@@ -9,13 +8,14 @@ use actix_web::{http, test, App};
 use cdrs::query::QueryExecutor;
 use serde_json::Value;
 use std::str;
-use user::db_connection::connect;
-use user::model::UserLogin;
-use user::model::UserRegistration;
-use user::user_service_api::user_service::AppState;
-use user::user_service_api::user_service::UserService;
-use user::user_service_impl::env_setup::initializer;
-use user::user_service_impl::handler::UserHandler;
+use user_service::db_connection::connect;
+use user_service::user_service_impl::env_setup::initializer;
+use user_service::user_service_impl::handler::UserHandler;
+use user_service::user_service_api::user_service::UserService;
+use user_service::model::UserRegistration;
+use user_service::user_service_api::user_service::AppState;
+use user_service::model::UserLogin;
+
 
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {

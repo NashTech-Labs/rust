@@ -1,13 +1,11 @@
-use crate::error::CustomError;
-use crate::model::User;
-use crate::model::UserLogin;
-use crate::model::UserRegistration;
-use crate::utility::Outcomes;
-use crate::db_connection::CurrentSession;
 use actix_web::Json;
 use actix_web::Path;
 use actix_web::State;
 use futures::Future;
+use crate::db_connection::CurrentSession;
+use crate::model::{UserRegistration, User, UserLogin};
+use crate::error::CustomError;
+use crate::utility::Outcomes;
 
 ///AppState is a struct with current session as field
 pub struct AppState {

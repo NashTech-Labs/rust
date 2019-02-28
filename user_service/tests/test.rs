@@ -1,35 +1,40 @@
 #[macro_use]
 extern crate serde_json;
-extern crate cdrs;
 
 use actix_web::client::ClientRequest;
 use actix_web::test::TestServer;
 use actix_web::{client::ClientResponse, HttpMessage};
 use actix_web::{http, test, App};
+use cdrs::query::QueryExecutor;
 use serde_json::Value;
 use std::str;
-use user::model::UserLogin;
-use user::model::UserRegistration;
-use user::user_service_api::user_service::AppState;
-use user::db_connection::connect;
-use user::user_service_impl::handler::UserInfo;
-use user::user_service_api::user_service::UserService;
-use cdrs::query::QueryExecutor;
-use user::user_service_impl::env_setup::initializer;
+use user_service::db_connection::connect;
+use user_service::user_service_impl::env_setup::initializer;
+use user_service::user_service_impl::handler::UserHandler;
+use user_service::user_service_api::user_service::UserService;
+use user_service::model::UserRegistration;
+use user_service::user_service_api::user_service::AppState;
+use user_service::model::UserLogin;
+
 
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
     initializer(&connect());
     App::with_state(AppState { session: connect() })
         .resource("/create_user", |r| {
-            r.method(http::Method::POST).with_async(UserInfo::create_user)})
-        .resource("/login", |r|{ r.method(http::Method::POST)
-            .with_async(UserInfo::user_login)})
+            r.method(http::Method::POST)
+                .with_async(UserHandler::create_user)
+        })
+        .resource("/login", |r| {
+            r.method(http::Method::POST)
+                .with_async(UserHandler::user_login)
+        })
         .resource("/get_user/{user_id}", |r| {
-            r.method(http::Method::GET).with_async(UserInfo::get_user)
+            r.method(http::Method::GET).with_async(UserHandler::get_user)
         })
         .resource("/get_users", |r| {
-            r.method(http::Method::GET).with_async(UserInfo::get_all_users)
+            r.method(http::Method::GET)
+                .with_async(UserHandler::get_all_users)
         })
 }
 
@@ -47,8 +52,8 @@ fn test_insert_first_time() {
         .unwrap();
     let response: ClientResponse = server.execute(request.send()).unwrap();
     assert!(response.status().is_success());
-    let user_detail_in_bytes = server.execute(response.body()).unwrap();
-    let parsed_user_detail = str::from_utf8(&user_detail_in_bytes).unwrap();
+    let user_details= server.execute(response.body()).unwrap();
+    let parsed_user_detail = str::from_utf8(&user_details).unwrap();
     let user_detail: Value = serde_json::from_str(parsed_user_detail).unwrap();
     assert_eq!(
         user_detail,
@@ -82,10 +87,28 @@ fn test_insert_not_first_time() {
         .unwrap();
 
     let response: ClientResponse = server.execute(request.send()).unwrap();
-
     assert!(response.status().is_client_error());
+
     connect().query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'a9c8536e-75ee-582b-a145-b6ace45abe9d'")
         .expect("Deletion error in insert handler test");
+}
+
+#[test]
+fn test_insert_invalid_input() {
+    let user_reg: UserRegistration = UserRegistration {
+        name: "".to_string(),
+        email: "sid@gmail.com".to_string(),
+        password: "sid123@".to_string(),
+    };
+    let mut server: TestServer = test::TestServer::with_factory(create_app);
+
+    let request: ClientRequest = server
+        .client(http::Method::POST, "/create_user")
+        .json(user_reg.clone())
+        .unwrap();
+    let response: ClientResponse = server.execute(request.send()).unwrap();
+
+    assert!(response.status().is_client_error());
 }
 
 #[test]
@@ -100,7 +123,7 @@ fn test_display_by_id() {
         .client(http::Method::POST, "/create_user")
         .json(user_reg)
         .unwrap();
-    let _response: ClientResponse = server.execute(request.send()).unwrap();
+    server.execute(request.send()).unwrap();
     let request: ClientRequest = server
         .client(
             http::Method::GET,
@@ -112,9 +135,9 @@ fn test_display_by_id() {
     let response: ClientResponse = server.execute(request.send()).unwrap();
     let user_detail = server.execute(response.body()).unwrap();
     let parsed_user_detail = str::from_utf8(&user_detail).unwrap();
-    let user_detail_json: Value = serde_json::from_str(parsed_user_detail).unwrap();
+    let user: Value = serde_json::from_str(parsed_user_detail).unwrap();
     assert_eq!(
-        user_detail_json,
+        user,
         json!({"id": "a9c8536e-75ee-582b-a145-b6ace45abe9d","name": "sid","email":
     "sid@gmail.com"})
     );
@@ -148,6 +171,9 @@ fn test_user_login() {
     let user_id = server.execute(response.body()).unwrap();
     let parsed_user_id = str::from_utf8(&user_id).unwrap();
     assert_eq!(parsed_user_id, "a9c8536e-75ee-582b-a145-b6ace45abe9d");
+
+    connect().query("DELETE from user_event_sourcing_ks.user_states WHERE user_id = 'a9c8536e-75ee-582b-a145-b6ace45abe9d'")
+        .expect("Deletion error in insert handler test");
 }
 
 #[test]
@@ -168,6 +194,22 @@ fn test_display_by_wrong_id() {
 fn test_user_login_not_exist() {
     let user_login: UserLogin = UserLogin {
         email: "rahul@gmail.com".to_string(),
+        password: "rsb007@".to_string(),
+    };
+    let mut server: TestServer = test::TestServer::with_factory(create_app);
+
+    let request: ClientRequest = server
+        .client(http::Method::POST, "/login")
+        .json(user_login)
+        .unwrap();
+    let response: ClientResponse = server.execute(request.send()).unwrap();
+    assert!(response.status().is_client_error());
+}
+
+#[test]
+fn test_user_login_invalid_input() {
+    let user_login: UserLogin = UserLogin {
+        email: "rahulgmail.com".to_string(),
         password: "rsb007@".to_string(),
     };
     let mut server: TestServer = test::TestServer::with_factory(create_app);

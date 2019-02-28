@@ -12,7 +12,7 @@ use crate::user_service_impl::eventsourcing::user_repository::event_persistent;
 use crate::user_service_impl::eventsourcing::user_repository::is_present;
 use crate::user_service_impl::eventsourcing::user_repository::get_all_user;
 use crate::user_service_impl::eventsourcing::user_repository::get_user;
-use crate::user_service_impl::eventsourcing::user_repository::UserMapper;
+use crate::user_service_impl::eventsourcing::user_repository::UserInfo;
 use crate::user_service_impl::eventsourcing::user_state::UserState;
 use crate::utility::wrap_vec;
 use crate::utility::Outcomes;
@@ -22,16 +22,14 @@ use futures::future::result;
 use futures::Future;
 use std::cell::RefCell;
 use uuid::Uuid;
+use crate::constants::INDEX;
 use std::error::Error;
 use actix_web::middleware::session::{RequestSession, SessionStorage, CookieSessionBackend};
 use actix_web::middleware::session::Session;
-use validator::{Validate, ValidationError};
+use validator::Validate;
+pub struct UserHandler;
 
-static INDEX: usize = 0;
-
-pub struct UserInfo;
-
-impl UserService for UserInfo {
+impl UserService for UserHandler {
     /// create_user is a method which takes struct of UserRegistration and AppState
     /// returns Result<Json<User>> in case of success and in case of failure,
     /// it will return CustomError
@@ -40,12 +38,12 @@ impl UserService for UserInfo {
         data: State<AppState>,
         user_reg: Json<UserRegistration>,
         session: Session,
-    ) -> Box<Future<Item=Json<User>, Error=CustomError>> {
+    ) -> Box<Future<Item=Json<User>, Error=CustomError>>{
         let new_user: UserRegistration = user_reg.into_inner();
         match new_user.validate() {
             Ok(_) => {
                 let new_user_id: String = get_id_by_email(new_user.email.as_str()).to_string();
-                if is_present(&data.session, new_user_id.clone()) {
+                if is_present(&data.session, new_user_id.clone()).wait().unwrap() {
                         let initial_user_state: UserState = initial_state();
                         let user_id:String = get_id_by_email(&initial_user_state.user.email).to_string();
 
@@ -56,15 +54,12 @@ impl UserService for UserInfo {
                             PUser::handle_command(&initial_user_state, create_user_command).unwrap();
                         let user_state: UserState =
                             PUser::apply_event(&initial_user_state, user_events[INDEX].clone()).unwrap();
-                        match event_persistent(&data.session, &user_events[INDEX], new_user_id, &user_state) {
-                            Ok(_) => result(Ok(Json(map_user(user_state.user)))).responder(),
+                        match event_persistent(&data.session, &user_events[INDEX], new_user_id, &user_state).wait() {
+                            Ok(_) => result(Ok(Json(map_user(user_state.user)))),
                             Err(_) => result(Err(CustomError::InvalidInput {
                                 field: "Internal Server Error",
-                            }))
-                                .responder(),
-                        }
-
-
+                            })),
+                        }.responder()
                 } else {
                     result(Err(CustomError::InvalidInput {
                         field: "user with this state already exist",
@@ -90,8 +85,8 @@ impl UserService for UserInfo {
         user_id: Path<String>,
         session: Session,
     ) -> Box<Future<Item=Json<User>, Error=CustomError>> {
-        let user_mapper_list: Vec<UserMapper> = get_user(&data.session, user_id.into_inner());
-        if user_mapper_list.is_empty() {
+        let users_detail: Vec<UserInfo> = get_user(&data.session, user_id.into_inner()).wait().unwrap();
+        if users_detail.is_empty() {
             result(Err(CustomError::InvalidInput {
                 field: "user with this id doesn't exist",
             }))
@@ -100,7 +95,7 @@ impl UserService for UserInfo {
             if let Some(userid) = session.get::<String>("userid").unwrap() {
                 println!("SESSION value: {}", userid);
                 let user_state: UserState =
-                    serde_json::from_str(&user_mapper_list[INDEX].user_state).unwrap();
+                    serde_json::from_str(&users_detail[INDEX].user_state).unwrap();
                 result(Ok(Json(map_user(user_state.user)))).responder()
             } else {
 
@@ -116,24 +111,24 @@ impl UserService for UserInfo {
         data: State<AppState>,
         session: Session,
     ) -> Box<Future<Item=Json<Outcomes<User>>, Error=CustomError>> {
-        let user_mapper: Vec<UserMapper> = get_all_user(&data.session);
         let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
-        if user_mapper.is_empty() {
+        let user_info: Vec<UserInfo> = get_all_user(&data.session).wait().unwrap();
+        if user_info.is_empty() {
             result(Err(CustomError::InternalError {
                 field: "error in getting all users",
             }))
                 .responder()
         } else {
-
             if let Some(userid) = session.get::<String>("userid").unwrap() {
-                for user in user_mapper {
+                for user in user_info {
                     let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
                     user_list.borrow_mut().push(map_user(user_state.user));
                 }
                 let vec_of_user: Vec<User> = user_list.borrow().to_vec();
 
-                result(Ok(Json(wrap_vec(vec_of_user)))).responder()
-            } else {
+                result(Ok(Json(wrap_vec(vec_of_user)))).responder()     }
+            else {
+
                 result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
             }
         }
@@ -150,7 +145,7 @@ impl UserService for UserInfo {
             Ok(_) => {
                 let user_email: String = u_login.email;
                 let user_id: String = get_id_by_email(user_email.as_str()).to_string();
-                let user_status: Vec<UserMapper> = get_user(&data.session, user_id.clone());
+                let user_status: Vec<UserInfo> = get_user(&data.session, user_id.clone()).wait().unwrap();
                 if user_status.is_empty() {
                     result(Err(CustomError::InvalidInput {
                         field: "user not found",
@@ -200,13 +195,6 @@ impl UserService for UserInfo {
         }
     }
 }
-
-/*if let Some(count) = session.get::<i32>("counter").unwrap() {
-                  println!("SESSION value: {}", count);
-                 session.set("counter", count+1).unwrap();
-              } else {
-                    session.set("counter", 1).unwrap();
-             }*/
 
 /// this method is used to retrieve the id from email
 pub fn get_id_by_email(user_email: &str) -> Uuid {

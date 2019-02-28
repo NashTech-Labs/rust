@@ -1,4 +1,4 @@
-use validator::{Validate, ValidationError};
+use validator::Validate;
 
 /// User is used to map the details at ClientResponse time
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]

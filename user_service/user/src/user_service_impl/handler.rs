@@ -103,6 +103,7 @@ impl UserService for UserInfo {
                     serde_json::from_str(&user_mapper_list[INDEX].user_state).unwrap();
                 result(Ok(Json(map_user(user_state.user)))).responder()
             } else {
+
                result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
             }
         }
@@ -135,8 +136,6 @@ impl UserService for UserInfo {
             } else {
                 result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
             }
-
-
         }
     }
 

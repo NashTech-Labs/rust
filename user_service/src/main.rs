@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         App::with_state(AppState { session: connect() })
             .middleware(SessionStorage::new(
                 CookieSessionBackend::signed(&[0;32])
+                    .max_age(Duration::minutes(2))
                     .secure(false)
             ))
             .resource("/create_user", |r| {

@@ -15,12 +15,20 @@ use user_service::user_service_api::user_service::UserService;
 use user_service::model::UserRegistration;
 use user_service::user_service_api::user_service::AppState;
 use user_service::model::UserLogin;
+use actix_web::middleware::session::{RequestSession, SessionStorage, CookieSessionBackend,Session};
+use time::Duration;
 
+pub const SESSION_AGE:i64 = 1;
 
 #[cfg_attr(tarpaulin, skip)]
 fn create_app() -> App<AppState> {
     initializer(&connect());
     App::with_state(AppState { session: connect() })
+        .middleware(SessionStorage::new(
+            CookieSessionBackend::signed(&[0;32])
+                .max_age(Duration::days(SESSION_AGE))
+                .secure(false)
+        ))
         .resource("/create_user", |r| {
             r.method(http::Method::POST)
                 .with_async(UserHandler::create_user)
@@ -224,6 +232,7 @@ fn test_user_login_invalid_input() {
 
 #[test]
 fn test_display_all_users() {
+
     let mut server: TestServer = test::TestServer::with_factory(create_app);
     let request: ClientRequest = server
         .client(http::Method::GET, "/get_users")

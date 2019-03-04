@@ -24,9 +24,9 @@ use std::cell::RefCell;
 use uuid::Uuid;
 use crate::constants::INDEX;
 use std::error::Error;
-use actix_web::middleware::session::{RequestSession, SessionStorage, CookieSessionBackend};
-use actix_web::middleware::session::Session;
+use actix_web::middleware::session::{RequestSession, SessionStorage, CookieSessionBackend,Session};
 use validator::Validate;
+
 pub struct UserHandler;
 
 impl UserService for UserHandler {
@@ -93,13 +93,12 @@ impl UserService for UserHandler {
                 .responder()
         } else {
             if let Some(userid) = session.get::<String>("userid").unwrap() {
-                println!("SESSION value: {}", userid);
                 let user_state: UserState =
                     serde_json::from_str(&users_detail[INDEX].user_state).unwrap();
                 result(Ok(Json(map_user(user_state.user)))).responder()
             } else {
 
-               result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
+               result(Err(CustomError::Timeout {field : "Please sign in"})).responder()
             }
         }
     }
@@ -111,27 +110,30 @@ impl UserService for UserHandler {
         data: State<AppState>,
         session: Session,
     ) -> Box<Future<Item=Json<Outcomes<User>>, Error=CustomError>> {
-        let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
-        let user_info: Vec<UserInfo> = get_all_user(&data.session).wait().unwrap();
-        if user_info.is_empty() {
-            result(Err(CustomError::InternalError {
-                field: "error in getting all users",
-            }))
-                .responder()
-        } else {
-            if let Some(userid) = session.get::<String>("userid").unwrap() {
+
+        if let Some(userid) = session.get::<String>("userid").unwrap() {
+
+                let user_list: RefCell<Vec<User>> = RefCell::new(vec![]);
+                let user_info: Vec<UserInfo> = get_all_user(&data.session).wait().unwrap();
+                if user_info.is_empty() {
+                    result(Err(CustomError::InternalError {
+                        field: "error in getting all users",
+                    }))
+                        .responder()
+                }
+                else {
                 for user in user_info {
                     let user_state: UserState = serde_json::from_str(&user.user_state).unwrap();
                     user_list.borrow_mut().push(map_user(user_state.user));
                 }
-                let vec_of_user: Vec<User> = user_list.borrow().to_vec();
+                let users: Vec<User> = user_list.borrow().to_vec();
 
-                result(Ok(Json(wrap_vec(vec_of_user)))).responder()     }
-            else {
+                result(Ok(Json(wrap_vec(users)))).responder()   }  }
+            
+         else {
 
-                result(Err(CustomError::InvalidInput {field : "Please sign in"})).responder()
-            }
-        }
+           result(Err(CustomError::Timeout {field : "Please sign in"})).responder()
+       }
     }
 
     ///this method is used to authenticate the user so that he can get his id
@@ -152,26 +154,11 @@ impl UserService for UserHandler {
                     }))
                         .responder()
                 } else {
-
-                  //  session.set("userid", user_id.to_owned()).unwrap();
-                 //   println!("SESSION value: {}", userid);
                     if let Some(userid) = session.get::<String>("userid").unwrap() {
-                        println!("SESSION value: {}", userid);
                         session.set("userid", user_id.to_owned()).unwrap();
                     } else {
                         session.set("userid", user_id.to_owned()).unwrap();
-                        println!("SESSION value-----------: {:?}", session.get::<String>("userid").unwrap());
                     }
-                       //  println!("{:?}",session.try_into());
-
-                   /* println!("hello");
-                    if let Some(count) = session.get::<i32>("counter").unwrap() {
-                        println!("SESSION value: {}", count);
-                        session.set("counter", count+1).unwrap();
-                    } else {
-                        session.set("counter", 1).unwrap();
-                        println!("hi");
-                    }*/
 
                     let user_state: UserState =
                         serde_json::from_str(&user_status[INDEX].user_state).unwrap();

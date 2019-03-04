@@ -50,6 +50,8 @@ impl ConfigSetting {
         })
     }
 }
+pub const SESSION_AGE:i64 = 1;
+
 #[cfg_attr(tarpaulin, skip)]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config_setting: ConfigSetting = ConfigSetting::new()?;
@@ -65,7 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         App::with_state(AppState { session: connect() })
             .middleware(SessionStorage::new(
                 CookieSessionBackend::signed(&[0;32])
-                    .max_age(Duration::days(1))
+                    .max_age(Duration::days(SESSION_AGE))
                     .secure(false)
             ))
             .resource("/create_user", |r| {
